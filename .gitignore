@@ -88,6 +88,7 @@ AppPackages/
 
 # Others
 sql/
+.vs/
 *.Cache
 ClientBin/
 [Ss]tyle[Cc]op.*
