@@ -1,40 +1,55 @@
 ﻿using BlinkHttp.Handling;
+using BlinkHttp.Routing;
 using System.Net;
 
 namespace BlinkHttp.Http
 {
     internal class HttpServer
     {
-        private readonly HttpListener _listener;
-        private readonly string[] _prefixes;
+        private readonly HttpListener listener;
+        private readonly Router router;
+        private readonly string[] prefixes;
 
         internal static string WebFolderPath => Path.Combine(Path.GetDirectoryName(Environment.ProcessPath!)!, "web");
 
-        private readonly CancellationTokenSource _cts;
+        private readonly CancellationTokenSource cts;
 
         internal HttpServer(params string[] prefixes)
         {
-            _listener = new HttpListener();
-            _prefixes = prefixes;
+            listener = new HttpListener();
+            this.prefixes = prefixes;
 
             foreach (var prefix in prefixes)
             {
-                _listener.Prefixes.Add(prefix);
+                listener.Prefixes.Add(prefix);
             }
 
-            _cts = new CancellationTokenSource();
+            cts = new CancellationTokenSource();
+
+            router = ConfigureRouter();
+        }
+
+        private static Router ConfigureRouter()
+        {
+            Router router = new Router();
+            router.Options.RoutePrefix = "api";
+            router.InitializeAllRoutes();
+
+            router.RouteGet("/test", () => new JsonResult("""{ "message": "This is message from single endpoint." }"""));
+
+            return router;
         }
 
         internal async Task StartAsync()
         {
-            _listener.Start();
+            listener.Start();
 
             try
             {
-                while (!_cts.Token.IsCancellationRequested)
+                while (!cts.Token.IsCancellationRequested)
                 {
-                    Task<HttpListenerContext> contextTask = _listener.GetContextAsync();
-                    Task completedTask = await Task.WhenAny(contextTask, Task.Delay(-1, _cts.Token));
+                    Task<HttpListenerContext> contextTask = listener.GetContextAsync();
+                    Task completedTask = await Task.WhenAny(contextTask, Task.Delay(-1, cts.Token));
 
                     if (completedTask == contextTask)
                     {
@@ -47,13 +62,13 @@ namespace BlinkHttp.Http
                     }
                 }
             }
-            catch (HttpListenerException) when (_cts.Token.IsCancellationRequested)
+            catch (HttpListenerException) when (cts.Token.IsCancellationRequested)
             {
                 // OK — listener has stopped
             }
             finally
             {
-                _listener.Stop();
+                listener.Stop();
                 Console.WriteLine("Server has been stopped.");
             }
         }
@@ -67,7 +82,7 @@ namespace BlinkHttp.Http
 
             byte[] buffer = [];
 
-            GeneralRequestHandler handler = new GeneralRequestHandler();
+            GeneralRequestHandler handler = new GeneralRequestHandler(router);
             handler.HandleRequest(request, response, ref buffer);
 
             using Stream output = response.OutputStream;
@@ -75,6 +90,6 @@ namespace BlinkHttp.Http
             response.Close();
         }
 
-        public void Stop() => _cts.Cancel();
+        public void Stop() => cts.Cancel();
     }
 }

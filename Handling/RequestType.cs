@@ -2,7 +2,6 @@
 {
     internal enum RequestType
     {
-        None,
         File,
         Rest
     }
