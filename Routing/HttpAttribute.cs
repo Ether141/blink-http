@@ -7,8 +7,6 @@ namespace BlinkHttp.Routing
     {
         private readonly string? route;
         
-        internal string? RouteParams { get; }
-
         internal abstract Http.HttpMethod HttpMethod { get; }
 
         internal HttpAttribute() { }
@@ -16,10 +14,8 @@ namespace BlinkHttp.Routing
         internal HttpAttribute(string route)
         {
             route = RouteUrlUtility.TrimAndLowerUrl(route);
-            RouteParams = RouteUrlUtility.GetRouteParameters(route);
-            route = RouteUrlUtility.RemoveRouteParameters(RouteUrlUtility.RemoveQuery(route));
 
-            if (!RouteUrlUtility.IsValidRestApiUrl(route))
+            if (string.IsNullOrWhiteSpace(route) || (!route.StartsWith('{') && !RouteUrlUtility.IsValidRestApiUrl(RouteUrlUtility.RemoveRouteParameters(route))))
             {
                 throw new FormatException("Given route is in invalid format.");
             }
@@ -27,6 +23,7 @@ namespace BlinkHttp.Routing
             this.route = route;
         }
 
-        internal string GetRouteValue(MethodInfo methodInfo) => route ?? methodInfo.Name.ToLowerInvariant();
+        internal string GetRouteValue(MethodInfo methodInfo) 
+            => route ?? (methodInfo.Name.Equals("index", StringComparison.OrdinalIgnoreCase) ? string.Empty : methodInfo.Name.ToLowerInvariant());
     }
 }

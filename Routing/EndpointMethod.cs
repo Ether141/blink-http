@@ -4,13 +4,14 @@ namespace BlinkHttp.Routing
 {
     internal class EndpointMethod : IEndpointMethod
     {
-        private readonly MethodInfo methodInfo;
+        public MethodInfo MethodInfo { get; }
+        public bool MethodHasParameters => MethodInfo.GetParameters().Length > 0;
 
-        public EndpointMethod(MethodInfo methodInfo)
+        internal EndpointMethod(MethodInfo methodInfo)
         {
-            this.methodInfo = methodInfo;
+            MethodInfo = methodInfo;
         }
 
-        public object? Invoke(object? obj, object?[]? args) => methodInfo.Invoke(obj, args);
+        public object? Invoke(object? obj, object?[]? args) => MethodInfo.Invoke(obj, args);
     }
 }

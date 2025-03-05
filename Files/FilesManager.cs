@@ -12,6 +12,14 @@ namespace BlinkHttp.Files
 
         internal static byte[] LoadFile(Uri url) => LoadFile(GetLocalPathFile(url));
 
-        internal static byte[] LoadFile(string localPath) => File.ReadAllBytes(localPath); 
+        internal static byte[] LoadFile(string localPath)
+        {
+            if (!File.Exists(localPath))
+            {
+                throw new FileNotFoundException($"File \"{localPath}\" does not exist on the server.");
+            }
+
+            return File.ReadAllBytes(localPath);
+        }
     }
 }

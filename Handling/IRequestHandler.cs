@@ -1,9 +1,8 @@
-﻿using System.Net;
+﻿using BlinkHttp.Http;
 
-namespace BlinkHttp.Handling
+namespace BlinkHttp.Handling;
+
+internal interface IRequestHandler
 {
-    internal interface IRequestHandler
-    {
-        void HandleRequest(HttpListenerRequest request, HttpListenerResponse response, ref byte[] buffer);
-    }
+    void HandleRequest(HttpContext context, ref byte[] buffer);
 }

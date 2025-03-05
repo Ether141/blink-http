@@ -1,10 +1,9 @@
-﻿namespace BlinkHttp.Http
+﻿namespace BlinkHttp.Http;
+
+internal enum HttpMethod
 {
-    internal enum HttpMethod
-    {
-        Get,
-        Post,
-        Delete,
-        Put
-    }
+    Get,
+    Post,
+    Delete,
+    Put
 }

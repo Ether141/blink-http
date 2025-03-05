@@ -6,12 +6,23 @@ namespace BlinkHttp.Handling
 {
     internal class StaticFilesRequestHandler : RequestHandler
     {
-        public override void HandleRequest(HttpListenerRequest request, HttpListenerResponse response, ref byte[] buffer)
+        public override void HandleRequest(HttpContext context, ref byte[] buffer)
         {
+            HttpListenerRequest request = context.Request;
+            HttpListenerResponse response = context.Response;
+
             string localPath = FilesManager.GetLocalPathFile(request.Url!);
             Console.WriteLine($"Returning static file: {localPath}");
 
-            buffer = FilesManager.LoadFile(request.Url!);
+            try
+            {
+                buffer = FilesManager.LoadFile(request.Url!);
+            }
+            catch (FileNotFoundException)
+            {
+                buffer = ReturnNotFoundPage(response);
+                return;
+            }
 
             response.ContentType = MimeTypes.GetMimeTypeForExtension(Path.GetExtension(localPath));
             response.ContentLength64 = buffer.Length;

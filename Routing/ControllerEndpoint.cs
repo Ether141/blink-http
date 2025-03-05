@@ -15,7 +15,11 @@ namespace BlinkHttp.Routing
             Method = method;
         }
 
-        public IHttpResult? InvokeEndpoint() => Method.Invoke(Controller, null) as IHttpResult;
+        public IHttpResult? InvokeEndpoint(HttpContext context, object?[]? args)
+        {
+            Controller.Context = context;
+            return Method.Invoke(Controller, args) as IHttpResult;
+        }
 
         public override string? ToString() => $"[{HttpMethod}] {Method}";
     }

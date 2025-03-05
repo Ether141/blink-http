@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using System.Text.Json;
 
 namespace BlinkHttp.Http
 {
@@ -13,5 +14,7 @@ namespace BlinkHttp.Http
         {
             this.jsonValue = jsonValue;
         }
+
+        internal static JsonResult FromObject(object? obj) => new JsonResult(JsonSerializer.Serialize(obj, JsonSerializerOptions.Web));
     }
 }

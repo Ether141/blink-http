@@ -7,6 +7,6 @@ namespace BlinkHttp.Routing
         Http.HttpMethod HttpMethod { get; }
         IEndpointMethod Method { get; }
 
-        IHttpResult? InvokeEndpoint();
+        IHttpResult? InvokeEndpoint(HttpContext context, object?[]? args);
     }
 }

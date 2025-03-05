@@ -1,4 +1,5 @@
-﻿using BlinkHttp.Http;
+﻿using BlinkHttp.Configuration;
+using BlinkHttp.Http;
 
 namespace BlinkHttp
 {
@@ -6,10 +7,14 @@ namespace BlinkHttp
     {
         private bool isServerRunning;
 
-        private const string StartMessage = "HTTP server started. Listening on port: 8080. Ctrl + C to stop.";
-        private const int Port = 8080;
+        private const string StartMessage = "HTTP server started. Ctrl + C to stop.";
+        internal ApplicationConfiguration Configuration { get; }
 
-        private string Address = $"http://localhost:{Port}/";
+        public App()
+        {
+            Configuration = new ApplicationConfiguration();
+            Configuration.LoadConfiguration();
+        }
 
         internal async Task Run(string[] args)
         {
@@ -20,7 +25,8 @@ namespace BlinkHttp
         {
             Console.CancelKeyPress += Console_CancelKeyPress;
 
-            HttpServer server = new HttpServer(Address);
+            string[]? prefixes = Configuration.GetArray("server:prefixes") ?? throw new ArgumentNullException("server:prefix options cannot be found in the configuration file.");
+            HttpServer server = new HttpServer(prefixes);
             Task serverTask = server.StartAsync();
 
             isServerRunning = true;

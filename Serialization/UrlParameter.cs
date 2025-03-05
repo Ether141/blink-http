@@ -1,4 +1,4 @@
-﻿namespace BlinkHttp.Routing
+﻿namespace BlinkHttp.Serialization
 {
     internal class UrlParameter
     {
@@ -10,5 +10,7 @@
             Name = name;
             Value = value;
         }
+
+        public override string? ToString() => $"{Name} = {Value}";
     }
 }

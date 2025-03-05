@@ -1,4 +1,6 @@
-﻿namespace BlinkHttp.Routing
+﻿using BlinkHttp.Serialization;
+
+namespace BlinkHttp.Routing
 {
     internal class ControllerRoute : IRoutesCollection
     {
@@ -22,10 +24,16 @@
 
             if (RouteExists(route.Path))
             {
-                throw new InvalidOperationException("Route with given path already exists!");
+                throw new InvalidOperationException("Route with given path already exists.");
             }
 
             route.CreateEndpoint(this, method);
+
+            if (!GetRequestParameters.CompareArgumentsAndParametersCount(route, ((EndpointMethod)route.Endpoint!.Method).MethodInfo))
+            {
+                throw new ArgumentException("Method required parameters count is not the same as route parameters.");
+            }
+
             routes.Add(route);
         }
 
@@ -39,10 +47,7 @@
             }
 
             path = path[Path.Length..].Trim('/');
-            path = RouteUrlUtility.RemoveQuery(path);
-            path = RouteUrlUtility.RemoveRouteParameters(path);
-
-            return routes.FirstOrDefault(r => r.Path == path);
+            return routes.FirstOrDefault(r => r.CanRoute(path));
         }
 
         public override string? ToString() => $"{Path} => {ControllerType.Name}";

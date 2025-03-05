@@ -1,5 +1,4 @@
-﻿using BlinkHttp.Http;
-using System.Reflection;
+﻿using System.Reflection;
 
 namespace BlinkHttp.Routing
 {
@@ -21,7 +20,7 @@ namespace BlinkHttp.Routing
             InitializeEndpoints();
         }
 
-        public IEndpoint? GetEndpoint(string url)
+        public Route? GetRoute(string url)
         {
             if (routes == null)
             {
@@ -30,30 +29,20 @@ namespace BlinkHttp.Routing
 
             url = RouteUrlUtility.TrimAndLowerUrl(url);
 
-            foreach (IRoutesCollection controllerRoute in routes)
+            foreach (IRoutesCollection routesCollection in routes)
             {
-                Route? route = controllerRoute.GetRoute(url);
+                Route? route = routesCollection.GetRoute(url);
                 
                 if (route != null)
                 {
-                    return route.Endpoint;
+                    return route;
                 }
             }
 
             return null;
         }
 
-        public void RouteGet(string route, Func<IHttpResult> func) => Route(route, Http.HttpMethod.Get, func);
-
-        private void Route(string route, Http.HttpMethod httpMethod, Func<IHttpResult> func)
-        {
-            InitializeRoutesList();
-            route = RouteUrlUtility.TrimAndLowerUrl(route);
-            route = RouteUrlUtility.AppendRoutePrefix(route, Options.RoutePrefix);
-            routes![0].AddRoute(route, httpMethod, new EndpointDelegate(func));
-        }
-
-        private void InitializeRoutesList() => routes ??= [new SingleRoutes()];
+        private void InitializeRoutesList() => routes ??= [];
 
         private void InitializeControllers()
         {

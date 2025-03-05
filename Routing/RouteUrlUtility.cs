@@ -1,5 +1,4 @@
-﻿using System.IO;
-using System.Reflection;
+﻿using System.Reflection;
 using System.Text.RegularExpressions;
 
 namespace BlinkHttp.Routing
@@ -7,6 +6,7 @@ namespace BlinkHttp.Routing
     internal static class RouteUrlUtility
     {
         private static readonly Regex ValidUrlPathRegex = new Regex(@"^[a-zA-Z0-9\-._~%!$&'()*+,;=:@\/]*$", RegexOptions.Compiled | RegexOptions.CultureInvariant);
+        private static readonly Regex RouteParameterRegex = new Regex(@"^{.*}$", RegexOptions.Compiled | RegexOptions.CultureInvariant);
 
         internal static string GetRoutePathForController(Type controllerType, string? prefix)
         {
@@ -55,7 +55,8 @@ namespace BlinkHttp.Routing
 
         internal static string RemoveRouteParameters(string url)
         {
-            int index = url.IndexOf('{') - 1;
+            int index = url.IndexOf('{');
+            index = index > 0 ? index - 1 : index;
             string? query = GetQuery(url);
             return index > -1 ? url[..index] + (query ?? "") : url;
         }
@@ -89,5 +90,7 @@ namespace BlinkHttp.Routing
         internal static bool IsValidRestApiUrl(string url) => !string.IsNullOrWhiteSpace(url) && ValidUrlPathRegex.IsMatch(url);
 
         internal static string TrimAndLowerUrl(string url) => url.Trim('/', '\\').Trim().ToLowerInvariant();
+
+        internal static bool IsRouteParameter(string value) => RouteParameterRegex.IsMatch(value);
     }
 }
