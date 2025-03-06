@@ -29,7 +29,7 @@ public class Logger : ILogger
         if (loggerSettings.IsConsoleUsed)
         {
             loggersSet.Add(new ConsoleLogger(loggerSettings.ConsoleLoggerOptions?.MessageFormat, loggerSettings.ConsoleLoggerOptions?.ColorfulConsole ?? false,
-                                             loggerSettings.ConsoleLoggerOptions?.StandardOutput ?? false, loggerSettings.ConsoleLoggerOptions?.ExternalOutput ?? false));
+                                             loggerSettings.ConsoleLoggerOptions?.StandardOutput ?? false));
         }
 
         if (loggerSettings.IsFileUsed)
