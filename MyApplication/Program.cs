@@ -1,7 +1,8 @@
 ﻿using BlinkDatabase;
+using BlinkDatabase.General;
 using BlinkDatabase.Mapping;
 using BlinkDatabase.PostgreSql;
-using BlinkDatabase.Sql;
+using BlinkDatabase.Utilities;
 using BlinkHttp.Application;
 using BlinkHttp.Configuration;
 using Npgsql;
@@ -12,16 +13,35 @@ internal class Program
 {
     public static async Task Main(string[] args)
     {
+        Logging.Logger.Configure(settings => settings.UseConsole(opt => opt.UseStandardOutput()));
+
+        Book book = new Book() { Id = 1, Library = new Library() { Id = 1 }};
+
         PostgreSqlConnection connection = new PostgreSqlConnection("172.18.133.85", "postgres", "password", "postgres");
         NpgsqlConnection conn = connection.Connect();
 
-        PostgreSqlRepository<Book> booksRepo = new PostgreSqlRepository<Book>(conn);
-        IEnumerable<Book> books = booksRepo.Select(b => b.Id <= 10);
+        PostgreSqlRepository<User> usersRepo = new PostgreSqlRepository<User>(conn);
 
-        foreach (var book in books)
+        //User user = usersRepo.SelectSingle(u => u.Id == 10)!;
+        //user.Role!.Id = 1;
+        //usersRepo.Update(user);
+
+        IEnumerable<User> allUsers = usersRepo.Select(u => u.Role.Id == 2).OrderBy(u => u.Id);
+
+        foreach (User u in allUsers)
         {
-            Console.WriteLine(book);
+            Console.WriteLine(DatabaseObjectToString.ToString(u, false));
         }
+
+
+        //PostgreSqlRepository<Book> booksRepo = new PostgreSqlRepository<Book>(conn);
+
+        //IEnumerable<Book> books = booksRepo.Select();
+
+        //foreach (var b in books)
+        //{
+        //    Console.WriteLine(b);
+        //}
 
 
         //PostgreSqlRepository<Library> libraries = new PostgreSqlRepository<Library>(conn);
@@ -32,13 +52,6 @@ internal class Program
         //    Console.WriteLine(library);
         //}
 
-
-        //PostgreSqlRepository<Address> addresses = new PostgreSqlRepository<Address>(conn);
-
-        //foreach (var o in addresses.GetWhere(a => a.Id <= 10 && a.City!.Id == 4))
-        //{
-        //    Console.WriteLine(o);
-        //}
 
 
         //WebApplicationBuilder builder = new WebApplicationBuilder();

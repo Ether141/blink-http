@@ -1,6 +1,6 @@
 ﻿using System.Text;
 
-namespace BlinkHttp.Logging;
+namespace Logging;
 
 internal class FileLogger : IGeneralLogger
 {

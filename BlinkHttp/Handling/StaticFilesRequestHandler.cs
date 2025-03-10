@@ -1,6 +1,6 @@
 ﻿using BlinkHttp.Files;
 using BlinkHttp.Http;
-using BlinkHttp.Logging;
+using Logging;
 using System.Net;
 
 namespace BlinkHttp.Handling

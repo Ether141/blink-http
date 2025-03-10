@@ -1,6 +1,6 @@
 ﻿using System.Globalization;
 
-namespace BlinkHttp.Logging;
+namespace Logging;
 
 internal static class LoggingHelper
 {

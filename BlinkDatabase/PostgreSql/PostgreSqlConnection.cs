@@ -26,6 +26,7 @@ public class PostgreSqlConnection
     {
         Connection = new NpgsqlConnection(ConnectionString);
         Connection.Open();
+
         return Connection;
     }
 

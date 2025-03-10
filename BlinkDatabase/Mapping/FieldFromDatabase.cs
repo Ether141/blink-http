@@ -16,4 +16,6 @@ internal class FieldFromDatabase
         Value = value;
         PgsqlType = pgsqlType;
     }
+
+    public override string? ToString() => $"{FullName}, {FieldType}, {PgsqlType}";
 }

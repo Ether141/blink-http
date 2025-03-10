@@ -1,4 +1,4 @@
-﻿namespace BlinkHttp.Logging;
+﻿namespace Logging;
 
 public abstract class LoggerOptions
 {

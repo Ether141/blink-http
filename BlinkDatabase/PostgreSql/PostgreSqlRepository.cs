@@ -1,6 +1,6 @@
 ﻿using BlinkDatabase.Annotations;
+using BlinkDatabase.General;
 using BlinkDatabase.Mapping;
-using BlinkDatabase.Sql;
 using Npgsql;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -18,23 +18,66 @@ public class PostgreSqlRepository<T> where T : class, new()
     public PostgreSqlRepository(NpgsqlConnection connection)
     {
         this.connection = connection;
+        Type type = typeof(T);
 
-        TableName = typeof(T).GetCustomAttribute<TableAttribute>()!.TableName;
+        TableName = type.GetCustomAttribute<TableAttribute>()!.TableName;
         mapper = new ObjectMapper<T>(this);
     }
 
     public IEnumerable<T> Select()
     {
         string query = SqlSelectBuilder.SelectAll<T>();
-        Console.WriteLine(query);
         return ExecuteSelect(query);
     }
 
     public IEnumerable<T> Select(Expression<Func<T, bool>> expression)
     {
         string query = SqlSelectBuilder.SelectWhere(expression);
-        Console.WriteLine(query);
         return ExecuteSelect(query);
+    }
+
+    public T? SelectSingle(Expression<Func<T, bool>> expression)
+    {
+        string query = SqlSelectBuilder.SelectWhere(expression);
+        return ExecuteSelect(query).FirstOrDefault();
+    }
+
+    public bool Exists(Expression<Func<T, bool>> expression)
+    {
+        string query = SqlSelectBuilder.SelectExist(expression);
+        ExecuteSelectNotMap(query);
+        return CurrentObjects.Count == 1;
+    }
+
+    public bool Exists(int id)
+    {
+        string query = SqlSelectBuilder.SelectExist<T>(id);
+        ExecuteSelectNotMap(query);
+        return CurrentObjects.Count == 1;
+    }
+
+    public int Insert(T obj)
+    {
+        string query = SqlInsertBuilder.Insert(obj);
+        return ExecuteNonQuery(query);
+    }
+
+    public int Update(T obj)
+    {
+        string query = SqlUpdateBuilder.Update(obj);
+        return ExecuteNonQuery(query);
+    }
+
+    public int Delete(Expression<Func<T, bool>> expression)
+    {
+        string query = SqlDeleteBuilder.Delete(expression);
+        return ExecuteNonQuery(query);
+    }
+
+    private int ExecuteNonQuery(string query)
+    {
+        using NpgsqlCommand cmd = new NpgsqlCommand(query, connection);
+        return cmd.ExecuteNonQuery();
     }
 
     private IEnumerable<T> ExecuteSelect(string query)
@@ -52,6 +95,13 @@ public class PostgreSqlRepository<T> where T : class, new()
         return result;
     }
 
+    private void ExecuteSelectNotMap(string query)
+    {
+        using NpgsqlCommand cmd = new NpgsqlCommand(query, connection);
+        using NpgsqlDataReader reader = cmd.ExecuteReader();
+        ReadAllObjects(reader);
+    }
+
     private void ReadAllObjects(NpgsqlDataReader reader)
     {
         CurrentObjects.Clear();
@@ -62,7 +112,10 @@ public class PostgreSqlRepository<T> where T : class, new()
 
             for (int i = 0; i < reader.FieldCount; i++)
             {
-                fields.Add(new FieldFromDatabase(reader.GetName(i), reader.GetFieldType(i), reader.GetValue(i), reader.GetPostgresType(i).Name));
+                if (!fields.Exists(f => f.FullName == reader.GetName(i)))
+                {
+                    fields.Add(new FieldFromDatabase(reader.GetName(i), reader.GetFieldType(i), reader.GetValue(i), reader.GetPostgresType(i).Name));
+                }
             }
             
             CurrentObjects.Add(new ObjectFromDatabase(fields));

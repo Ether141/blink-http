@@ -94,7 +94,7 @@ public class SqlExpressionVisitor<T> : ExpressionVisitor where T : class, new()
         }
         else if (enumType != null)
         {
-            builder.Append($"'{GetEnumValueName((Enum)Enum.ToObject(enumType, node.Value!))}'");
+            builder.Append($"'{EnumValueAttribute.GetEnumValueName(enumType, node.Value!)}'");
         }
         else
         {
@@ -116,12 +116,4 @@ public class SqlExpressionVisitor<T> : ExpressionVisitor where T : class, new()
         ExpressionType.OrElse => "OR",
         _ => throw new NotSupportedException($"Operator {nodeType} is not supported.")
     };
-
-    private string GetEnumValueName(Enum enumVal)
-    {
-        Type type = enumVal.GetType();
-        MemberInfo[] memInfo = type.GetMember(enumVal.ToString());
-        EnumValueAttribute attribute = memInfo[0].GetCustomAttribute<EnumValueAttribute>()!;
-        return attribute.Name;
-    }
 }

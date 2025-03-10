@@ -11,10 +11,4 @@
     <ProjectReference Include="..\Logging\Logging.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <None Update="config.cfg">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
-
 </Project>

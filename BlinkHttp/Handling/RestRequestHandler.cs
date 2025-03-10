@@ -1,5 +1,5 @@
 ﻿using BlinkHttp.Http;
-using BlinkHttp.Logging;
+using Logging;
 using BlinkHttp.Routing;
 using BlinkHttp.Serialization;
 using System.Net;

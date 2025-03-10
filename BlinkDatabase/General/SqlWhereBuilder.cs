@@ -1,11 +1,11 @@
 ﻿using BlinkDatabase.Mapping;
 using System.Linq.Expressions;
 
-namespace BlinkDatabase.Sql;
+namespace BlinkDatabase.General;
 
-internal class SqlWhereBuilder
+public class SqlWhereBuilder
 {
-    internal static string Where<T>(Expression<Func<T, bool>> expression) where T : class, new()
+    public static string Where<T>(Expression<Func<T, bool>> expression) where T : class, new()
     {
         var visitor = new SqlExpressionVisitor<T>();
         visitor.Visit(expression.Body);

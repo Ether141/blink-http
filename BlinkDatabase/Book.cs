@@ -9,16 +9,16 @@ public class Book
     [Column("id")]
     public int Id { get; set; }
 
-    [Relation("id")]
-    [Column("library_id")]
-    public Library? Library { get; set; }
-
     [Column("name")]
     public string? Name { get; set; }
+
+    [Relation("id")]
+    [Column("library_id")]
+    public Library Library { get; set; }
 
     [Relation("id")]
     [Column("author_id")]
     public Author? Author { get; set; }
 
-    public override string ToString() => $"Book(Id = {Id}, Name = {Name}, Author = {Author})";
+    public override string ToString() => $"Book(Id = {Id}, Name = {Name}, LibraryId = {Library?.Id}, Author = {Author})";
 }

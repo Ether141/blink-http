@@ -19,7 +19,7 @@ public class Library
     [Column("id")]
     public List<Book>? Books { get; set; }
 
-    public override string ToString() => $"Library(Id = {Id}, Name = {Name}, Type = {Type}, Books = [{string.Join(", ", Books!)}])";
+    public override string ToString() => $"Library(Id = {Id}, Name = {Name}, Type = {Type}, Books = [{(Books != null ? string.Join(", ", Books) : "N/A")}])";
 }
 
 [Enum("book_type")]

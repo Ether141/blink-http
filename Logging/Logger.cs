@@ -1,4 +1,4 @@
-﻿namespace BlinkHttp.Logging;
+﻿namespace Logging;
 
 public class Logger : ILogger
 {
@@ -39,6 +39,8 @@ public class Logger : ILogger
 
         isConfigured = true;
     }
+
+    public static ILogger GetLogger<T>() => GetLogger(typeof(T));
 
     public static ILogger GetLogger(Type forType)
     {

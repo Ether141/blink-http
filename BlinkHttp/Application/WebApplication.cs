@@ -1,6 +1,6 @@
 ﻿using BlinkHttp.Configuration;
 using BlinkHttp.Http;
-using BlinkHttp.Logging;
+using Logging;
 
 namespace BlinkHttp.Application;
 

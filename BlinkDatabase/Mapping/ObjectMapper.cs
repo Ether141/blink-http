@@ -30,11 +30,11 @@ internal class ObjectMapper<T> where T : class, new()
         foreach (ObjectProperty prop in properties)
         {
             object? value;
-            FieldFromDatabase? dbObj = objectFromDatabase.Fields.FirstOrDefault(o => o.FullName == prop.FullName) ?? throw new PropertyNotFoundException(prop.FullName);
+            FieldFromDatabase? fieldFromDb = objectFromDatabase.Fields.FirstOrDefault(o => o.FullName == prop.FullName) ?? throw new FieldNotFoundException(prop.FullName);
 
-            if (prop.StoredType != dbObj.FieldType)
+            if (prop.StoredType != fieldFromDb.FieldType)
             {
-                value = TryGetEnum(prop, dbObj);
+                value = TryGetEnum(prop, fieldFromDb);
 
                 if (value != null)
                 {
@@ -49,32 +49,12 @@ internal class ObjectMapper<T> where T : class, new()
 
                 if (!prop.IsRelation)
                 {
-                    throw new PropertyTypeMismatchException(dbObj.FullName, prop.ColumnName, dbObj.FieldType, prop.StoredType);
+                    throw new PropertyTypeMismatchException(fieldFromDb.FullName, prop.ColumnName, fieldFromDb.FieldType, prop.StoredType);
                 }
 
                 if (prop.RelationType == RelationType.OneToMany)
                 {
-                    Type constructedListType = typeof(List<>).MakeGenericType(prop.StoredType);
-                    System.Collections.IList objectsFromRelation = (System.Collections.IList)Activator.CreateInstance(constructedListType)!;
-
-                    ObjectFromDatabase? objFromDb = objectFromDatabase;
-                    List<ObjectFromDatabase> db = [.. repo.CurrentObjects.Where(o => o.Fields.Any(f => f.FullName == prop.FullName && f.Value.ToString() == dbObj.Value.ToString()))];
-
-                    foreach (ObjectFromDatabase objForRelation in db)
-                    {
-                        object o = MapInternal(prop.StoredType, objForRelation, type);
-                        objectsFromRelation.Add(o);
-                    }
-
-                    foreach (object? objFromRelation in objectsFromRelation)
-                    {
-                        foreach (PropertyInfo item in prop.StoredType.GetProperties().Where(p => p.GetCustomAttribute<RelationAttribute>() != null && p.PropertyType.GetCustomAttribute<TableAttribute>()!.TableName == prop.TableName))
-                        {
-                            item.SetValue(objFromRelation, obj);
-                        }
-                    }
-
-                    prop.Set(obj, objectsFromRelation);
+                    HandleOneToMany(type, prop, obj, objectFromDatabase, fieldFromDb);
                     continue;
                 }
 
@@ -83,7 +63,7 @@ internal class ObjectMapper<T> where T : class, new()
                 continue;
             }
 
-            value = dbObj.Value;
+            value = fieldFromDb.Value;
             prop.Set(obj, value);
         }
 
@@ -92,45 +72,34 @@ internal class ObjectMapper<T> where T : class, new()
 
     private T MapInternal(ObjectFromDatabase objectFromDatabases) => (T)MapInternal(typeof(T), objectFromDatabases);
 
+    private void HandleOneToMany(Type type, ObjectProperty prop, object obj, ObjectFromDatabase? objectFromDatabase, FieldFromDatabase fieldFromDb)
+    {
+        Type constructedListType = typeof(List<>).MakeGenericType(prop.StoredType);
+        System.Collections.IList objectsFromRelation = (System.Collections.IList)Activator.CreateInstance(constructedListType)!;
+
+        ObjectFromDatabase? objFromDb = objectFromDatabase;
+        List<ObjectFromDatabase> db = [.. repo.CurrentObjects.Where(o => o.Fields.Any(f => f.FullName == prop.FullName && f.Value.ToString() == fieldFromDb.Value.ToString()))];
+
+        foreach (ObjectFromDatabase objForRelation in db)
+        {
+            object o = MapInternal(prop.StoredType, objForRelation, type);
+            objectsFromRelation.Add(o);
+        }
+
+        foreach (object? objFromRelation in objectsFromRelation)
+        {
+            foreach (PropertyInfo item in prop.StoredType.GetProperties().Where(p => p.GetCustomAttribute<RelationAttribute>() != null && p.PropertyType.GetCustomAttribute<TableAttribute>()!.TableName == prop.TableName))
+            {
+                item.SetValue(objFromRelation, obj);
+            }
+        }
+
+        prop.Set(obj, objectsFromRelation);
+    }
+
     private static object? TryGetEnum(ObjectProperty prop, FieldFromDatabase obj)
     {
         EnumAttribute? enumAttribute = prop.StoredType.GetCustomAttribute<EnumAttribute>();
         return enumAttribute != null && enumAttribute.EnumName == obj.PgsqlType ? (Enum.TryParse(prop.StoredType, obj.Value.ToString(), true, out object? result) ? result : null) : null;
     }
-
-    //internal static NpgsqlCommand MapInsert<T>(T obj) where T : class, new()
-    //{
-    //    ObjectProperty[] properties = ObjectProperty.GetProperties<T>();
-    //    TableAttribute tableAttribute = typeof(T).GetCustomAttribute<TableAttribute>() ?? throw new TableAttributeMissingException(typeof(T).Name);
-
-    //    StringBuilder valueNamesBuilder = new StringBuilder();
-    //    StringBuilder valuesBuilder = new StringBuilder();
-    //    List<(string, object?)> values = [];
-
-    //    for (int i = 0; i < properties.Length; i++)
-    //    {
-    //        ObjectProperty property = properties[i];
-    //        string columnName = property.ColumnName;
-    //        valueNamesBuilder.Append(columnName);
-    //        valuesBuilder.Append($"@{columnName}");
-    //        values.Add((columnName, property.Get(obj)));
-
-    //        if (i < properties.Length - 1)
-    //        {
-    //            valueNamesBuilder.Append(", ");
-    //            valuesBuilder.Append(", ");
-    //        }
-    //    }
-
-    //    string tableName = tableAttribute.TableName;
-    //    string cmdText = $"INSERT INTO {tableName} ({valueNamesBuilder}) VALUES ({valuesBuilder})";
-    //    NpgsqlCommand cmd = new NpgsqlCommand(cmdText);
-
-    //    foreach ((string name, object? value) in values)
-    //    {
-    //        cmd.Parameters.AddWithValue(name, value!);
-    //    }
-
-    //    return cmd;
-    //}
 }
