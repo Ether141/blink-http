@@ -1,6 +1,7 @@
-﻿using BlinkHttp.Handling;
-using Logging;
+﻿using BlinkHttp.Authentication;
+using BlinkHttp.Handling;
 using BlinkHttp.Routing;
+using Logging;
 using System.Net;
 
 namespace BlinkHttp.Http;
@@ -10,19 +11,24 @@ internal class HttpServer
     private readonly HttpListener listener;
     private readonly Router router;
     private readonly GeneralRequestHandler generalHandler;
+    private readonly IAuthorizer? authorizer;
     private readonly string[] prefixes;
-    private readonly ILogger logger = Logger.GetLogger(typeof(HttpServer));
+    private readonly ILogger logger = Logger.GetLogger<HttpServer>();
 
     internal IReadOnlyList<string> Prefixes => prefixes;
     internal static string WebFolderPath => Path.Combine(Path.GetDirectoryName(Environment.ProcessPath!)!, "web");
 
     private readonly CancellationTokenSource cts;
 
-    internal HttpServer(params string[] prefixes)
+    internal HttpServer(params string[] prefixes) : this(null, prefixes) { }
+
+    internal HttpServer(IAuthorizer? authorizer, params string[] prefixes)
     {
-        logger.Debug("Starting HTTP server...");
+        logger.Debug("Initializing HTTP server...");
 
         listener = new HttpListener();
+
+        this.authorizer = authorizer;
         this.prefixes = prefixes;
 
         foreach (string prefix in prefixes)
@@ -35,7 +41,7 @@ internal class HttpServer
         cts = new CancellationTokenSource();
 
         router = ConfigureRouter();
-        generalHandler = new GeneralRequestHandler(router);
+        generalHandler = new GeneralRequestHandler(router, authorizer);
     }
 
     private static Router ConfigureRouter()
@@ -84,7 +90,7 @@ internal class HttpServer
     {
         HttpListenerRequest request = context.Request;
         HttpListenerResponse response = context.Response;
-        HttpContext httpContext = new HttpContext(request, response);
+        HttpContext httpContext = new HttpContext(request, response, authorizer);
 
         logger.Debug($"Received request [{request.HttpMethod}] from {request.LocalEndPoint.Address} - {request.Url}");
 

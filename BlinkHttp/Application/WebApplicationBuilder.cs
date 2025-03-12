@@ -1,4 +1,6 @@
-﻿using BlinkHttp.Configuration;
+﻿using BlinkHttp.Authentication.Session;
+using BlinkHttp.Authentication;
+using BlinkHttp.Configuration;
 using Logging;
 
 namespace BlinkHttp.Application;
@@ -8,6 +10,7 @@ public class WebApplicationBuilder
     private IConfiguration? configuration;
     private string[]? prefixes;
     private string? startMessage;
+    private IAuthorizer? authorizer;
 
     public WebApplicationBuilder UseConfiguration(IConfiguration configuration)
     {
@@ -34,10 +37,27 @@ public class WebApplicationBuilder
         return this;
     }
 
+    public WebApplicationBuilder UseSessionAuthorization()
+    {
+        authorizer = GetSessionManager(null);
+        return this;
+    }
+
+    public WebApplicationBuilder UseSessionAuthorization(Action<SessionOptions> opt)
+    {
+        SessionOptions sessionOptions = new SessionOptions();
+        opt.Invoke(sessionOptions);
+        authorizer = GetSessionManager(sessionOptions);
+        return this;
+    }
+
     public WebApplication Build()
     {
-        WebApplication app = new WebApplication();
-        app.Configuration = configuration;
+        WebApplication app = new WebApplication
+        {
+            Configuration = configuration,
+            Authorizer = authorizer
+        };
 
         if (startMessage != null)
         {
@@ -50,5 +70,28 @@ public class WebApplicationBuilder
         }
 
         return app;
+    }
+
+    private static SessionManager GetSessionManager(SessionOptions? opt)
+    {
+        DatabaseUserInfoProvider userInfoProvider = new DatabaseUserInfoProvider();
+        SessionStorageInMemory sessionStorage = new SessionStorageInMemory();
+        AuthenticationProvider authenticationProvider = new AuthenticationProvider(userInfoProvider);
+        SessionManager sessionManager = new SessionManager(sessionStorage, authenticationProvider, userInfoProvider);
+
+        if (opt != null)
+        {
+            if (opt.AttemptsLimitingEnabled)
+            {
+                sessionManager.EnableAttemptsLimiting(opt.AttemptsLimitingCooldown, opt.AttemptsLimitPerCooldown); 
+            }
+
+            if (opt.SessionValidFor != null)
+            {
+                sessionManager.EnableSessionExpiration(opt.SessionValidFor.Value);
+            }
+        }
+
+        return sessionManager;
     }
 }

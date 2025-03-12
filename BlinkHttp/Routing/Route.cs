@@ -6,7 +6,7 @@ internal class Route
     internal Http.HttpMethod HttpMethod { get; }
 
     internal ControllerRoute? AssociatedRoute { get; private set; }
-    internal IEndpoint? Endpoint { get; private set; }
+    internal IEndpoint Endpoint { get; private set; }
 
     internal bool HasRouteParameters => Path.Split('/', StringSplitOptions.RemoveEmptyEntries).Any(RouteUrlUtility.IsRouteParameter);
 

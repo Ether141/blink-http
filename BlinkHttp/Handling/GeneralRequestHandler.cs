@@ -1,4 +1,5 @@
-﻿using BlinkHttp.Files;
+﻿using BlinkHttp.Authentication;
+using BlinkHttp.Files;
 using BlinkHttp.Http;
 using BlinkHttp.Routing;
 using System.Net;
@@ -8,10 +9,12 @@ namespace BlinkHttp.Handling;
 internal class GeneralRequestHandler : RequestHandler
 {
     private readonly Router router;
+    private readonly IAuthorizer? authorizer;
 
-    public GeneralRequestHandler(Router router)
+    public GeneralRequestHandler(Router router, IAuthorizer? authorizer)
     {
         this.router = router;
+        this.authorizer = authorizer;
     }
 
     public override void HandleRequest(HttpContext context, ref byte[] buffer)
@@ -28,7 +31,7 @@ internal class GeneralRequestHandler : RequestHandler
         type switch
         {
             RequestType.File => new StaticFilesRequestHandler(),
-            RequestType.Rest => new RestRequestHandler(router),
+            RequestType.Rest => new RestRequestHandler(router, authorizer),
             _ => throw new NotSupportedException("RequestType is undefined.")
         };
 }

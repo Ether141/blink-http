@@ -15,23 +15,23 @@ internal class Program
     {
         Logging.Logger.Configure(settings => settings.UseConsole(opt => opt.UseStandardOutput()));
 
-        Book book = new Book() { Id = 1, Library = new Library() { Id = 1 }};
+        //Book book = new Book() { Id = 1, Library = new Library() { Id = 1 }};
 
-        PostgreSqlConnection connection = new PostgreSqlConnection("172.18.133.85", "postgres", "password", "postgres");
-        NpgsqlConnection conn = connection.Connect();
+        //PostgreSqlConnection connection = new PostgreSqlConnection("172.18.133.85", "postgres", "password", "postgres");
+        //NpgsqlConnection conn = connection.Connect();
 
-        PostgreSqlRepository<User> usersRepo = new PostgreSqlRepository<User>(conn);
+        //PostgreSqlRepository<User> usersRepo = new PostgreSqlRepository<User>(conn);
 
         //User user = usersRepo.SelectSingle(u => u.Id == 10)!;
         //user.Role!.Id = 1;
         //usersRepo.Update(user);
 
-        IEnumerable<User> allUsers = usersRepo.Select(u => u.Role.Id == 2).OrderBy(u => u.Id);
+        //IEnumerable<User> allUsers = usersRepo.Select(u => u.Role.Id == 2).OrderBy(u => u.Id);
 
-        foreach (User u in allUsers)
-        {
-            Console.WriteLine(DatabaseObjectToString.ToString(u, false));
-        }
+        //foreach (User u in allUsers)
+        //{
+        //    Console.WriteLine(DatabaseObjectToString.ToString(u, false));
+        //}
 
 
         //PostgreSqlRepository<Book> booksRepo = new PostgreSqlRepository<Book>(conn);
@@ -54,14 +54,18 @@ internal class Program
 
 
 
-        //WebApplicationBuilder builder = new WebApplicationBuilder();
+        WebApplicationBuilder builder = new WebApplicationBuilder();
 
-        //builder
-        //    .UseConfiguration(GetConfiguration())
-        //    .ConfigureLogging(settings => settings.UseConsole(opt => opt.UseStandardOutput()));
+        builder
+            .UseConfiguration(GetConfiguration())
 
-        //WebApplication app = builder.Build();
-        //await app.Run(args);
+            .UseSessionAuthorization(opt => opt.EnableAttemptsLimiting(10, 3)
+                                               .EnableSessionExpiration(TimeSpan.FromHours(12)))
+
+            .ConfigureLogging(settings => settings.UseConsole(opt => opt.UseStandardOutput()));
+
+        WebApplication app = builder.Build();
+        await app.Run(args);
     }
 
     private static IConfiguration GetConfiguration()

@@ -1,4 +1,5 @@
-﻿using BlinkHttp.Configuration;
+﻿using BlinkHttp.Authentication;
+using BlinkHttp.Configuration;
 using BlinkHttp.Http;
 using Logging;
 
@@ -12,8 +13,9 @@ public class WebApplication
     public string StartMessage { get; internal set; } = "HTTP server started. Ctrl + C to stop.";
     public IConfiguration? Configuration { get; internal set; }
     public string[]? Prefixes { get; internal set; }
+    public IAuthorizer? Authorizer { get; internal set; }
 
-    private readonly ILogger logger = Logger.GetLogger(typeof(WebApplication));
+    private readonly ILogger logger = Logger.GetLogger<WebApplication>();
 
     public async Task Run(string[] args) => await StartServer();
 
@@ -30,7 +32,8 @@ public class WebApplication
 
         Console.CancelKeyPress += Console_CancelKeyPress;
 
-        server = new HttpServer(Prefixes);
+        server = new HttpServer(Authorizer, Prefixes);
+
         Task serverTask = server.StartAsync();
 
         isServerRunning = true;

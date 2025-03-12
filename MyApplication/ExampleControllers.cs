@@ -1,10 +1,35 @@
-﻿using BlinkHttp.Http;
+﻿using BlinkHttp.Authentication;
+using BlinkHttp.Authentication.Session;
+using BlinkHttp.Http;
 
 namespace MyApplication;
 
 [Route("user")]
 internal class UserController : Controller
 {
+    [HttpPost]
+    public IHttpResult Login([FromBody] string username, [FromBody] string password)
+    {
+        (CredentialsValidationResult result, SessionInfo? sessionInfo) = ((SessionManager)Context.Authorizer!)
+            .Login(username, password, Context.Request.RemoteEndPoint.Address.ToString(), Context.Response);
+        return JsonResult.FromObject(new { result = result.ToString() });
+    }
+
+    [HttpPost]
+    [Authorize]
+    public IHttpResult Logout()
+    {
+        ((SessionManager)Context.Authorizer!).Logout(Context.Request);
+        return JsonResult.FromObject(new { result = "success" });
+    }
+
+    [HttpPost]
+    [Authorize]
+    public IHttpResult Get()
+    {
+        return new TextResult("secured resource");
+    }
+
     [HttpPost("{id}/get/{guid}")]
     public IHttpResult Get([FromQuery] int id, [FromQuery] string guid, [FromBody] UserInfo userInfo)
     {
@@ -28,5 +53,16 @@ internal class UserController : Controller
     {
         byte[] file = File.ReadAllBytes("C:/Users/ether/Desktop/image.jpg");
         return FileResult.Attachment(file, MimeTypes.ImageJpeg, fileName);
+    }
+}
+
+[Authorize]
+[Route("secured")]
+internal class SecuredResources : Controller
+{
+    [HttpGet]
+    public IHttpResult Get()
+    {
+        return new TextResult("secured resource");
     }
 }

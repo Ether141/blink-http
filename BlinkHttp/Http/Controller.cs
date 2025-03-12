@@ -2,5 +2,5 @@
 
 public abstract class Controller
 {
-    internal HttpContext Context { get; set; }
+    public HttpContext Context { get; set; }
 }

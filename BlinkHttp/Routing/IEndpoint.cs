@@ -1,4 +1,5 @@
-﻿using BlinkHttp.Http;
+﻿using BlinkHttp.Authentication;
+using BlinkHttp.Http;
 
 namespace BlinkHttp.Routing
 {
@@ -6,6 +7,8 @@ namespace BlinkHttp.Routing
     {
         Http.HttpMethod HttpMethod { get; }
         IEndpointMethod Method { get; }
+        bool IsSecure { get; }
+        AuthenticationRules? AuthenticationRules { get; }
 
         IHttpResult? InvokeEndpoint(HttpContext context, object?[]? args);
     }

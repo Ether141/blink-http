@@ -1,15 +1,18 @@
-﻿using System.Net;
+﻿using BlinkHttp.Authentication;
+using System.Net;
 
 namespace BlinkHttp.Http;
 
-internal class HttpContext
+public class HttpContext
 {
-    internal HttpListenerRequest Request { get; }
-    internal HttpListenerResponse Response { get; }
+    public HttpListenerRequest Request { get; }
+    public HttpListenerResponse Response { get; }
+    public IAuthorizer? Authorizer { get; }
 
-    public HttpContext(HttpListenerRequest request, HttpListenerResponse response)
+    public HttpContext(HttpListenerRequest request, HttpListenerResponse response, IAuthorizer? authorizer)
     {
         Request = request;
         Response = response;
+        Authorizer = authorizer;
     }
 }

@@ -30,7 +30,7 @@ internal static class RequestDataHandler
     private static object?[]? GetArgumentsFromUrl(Route route, string path)
     {
         UrlParameter[]? urlParameters = GetRequestParameters.GetUrlParameters(route.Path, path);
-        IEndpoint endpoint = route.Endpoint!;
+        IEndpoint endpoint = route.Endpoint;
 
         if (endpoint.Method.MethodHasParameters)
         {
@@ -46,7 +46,7 @@ internal static class RequestDataHandler
 
     private static object?[]? GetArgumentsFromBody(Route route, HttpListenerRequest request)
     {
-        MethodInfo methodInfo = route.Endpoint!.Method.MethodInfo;
+        MethodInfo methodInfo = route.Endpoint.Method.MethodInfo;
 
         if (RequestBodyParser.GetFromFormParameters(methodInfo).Length == 0)
         {

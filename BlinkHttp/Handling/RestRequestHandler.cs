@@ -3,17 +3,22 @@ using Logging;
 using BlinkHttp.Routing;
 using BlinkHttp.Serialization;
 using System.Net;
+using BlinkHttp.Authentication;
+using System.Text;
 
 namespace BlinkHttp.Handling
 {
     internal class RestRequestHandler : RequestHandler
     {
         private readonly Router router;
+        private readonly IAuthorizer? authorizer;
+
         private readonly ILogger logger = Logger.GetLogger(typeof(RestRequestHandler));
 
-        internal RestRequestHandler(Router router)
+        internal RestRequestHandler(Router router, IAuthorizer? authorizer)
         {
             this.router = router;
+            this.authorizer = authorizer;
         }
 
         public override void HandleRequest(HttpContext context, ref byte[] buffer)
@@ -36,6 +41,29 @@ namespace BlinkHttp.Handling
                 return;
             }
 
+            IEndpoint endpoint = route.Endpoint;
+
+            if (endpoint.IsSecure)
+            {
+                if (authorizer == null)
+                {
+                    logger.Warning("Endpoint is secure (marked with [Authorize] attribute), but authorization is turned off on server.");
+                }
+                else
+                {
+                    AuthorizationResult authorizationResult = authorizer.Authorize(context.Request, endpoint.AuthenticationRules);
+
+                    if (!authorizationResult.Authorized)
+                    {
+                        logger.Debug($"This endpoint is secure and requires authorization, but client did not provide required credentials. Reason: {authorizationResult.Message}");
+                        response.StatusCode = (int)authorizationResult.HttpCode;
+                        buffer = Encoding.UTF8.GetBytes(authorizationResult.Message);
+                        response.ContentLength64 = buffer.Length;
+                        return; 
+                    }
+                }
+            }
+
             object?[]? args;
 
             try
@@ -50,7 +78,6 @@ namespace BlinkHttp.Handling
                 return;
             }
 
-            IEndpoint endpoint = route.Endpoint!;
             IHttpResult? result = endpoint.InvokeEndpoint(context, args);
 
             if (result == null)

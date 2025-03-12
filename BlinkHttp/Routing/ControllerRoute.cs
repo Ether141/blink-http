@@ -31,22 +31,22 @@ internal class ControllerRoute : IRoutesCollection
 
         route.CreateEndpoint(this, method);
 
-        if (!GetRequestParameters.CompareArgumentsAndParametersCount(route, route.Endpoint!.Method.MethodInfo))
+        if (!GetRequestParameters.CompareArgumentsAndParametersCount(route, route.Endpoint.Method.MethodInfo))
         {
             throw new ArgumentException("Method required parameters count is not the same as route parameters.");
         }
 
-        if (!ValidateOptionalAttributes(route.Endpoint!.Method.MethodInfo))
+        if (!ValidateOptionalAttributes(route.Endpoint.Method.MethodInfo))
         {
             throw new ArgumentException("Optional attribute cannot be used without any From* attribute.");
         }
 
-        if (!ValidateAttributes(route.Endpoint!.Method.MethodInfo))
+        if (!ValidateAttributes(route.Endpoint.Method.MethodInfo))
         {
             throw new ArgumentException("Atrribute FromQuery cannot be combined with FromForm.");
         }
 
-        if (!ValidateAttributesOrder(route.Endpoint!.Method.MethodInfo))
+        if (!ValidateAttributesOrder(route.Endpoint.Method.MethodInfo))
         {
             throw new ArgumentException("Atrributes FromForm must be defined after all FromQuery attributes.");
         }
