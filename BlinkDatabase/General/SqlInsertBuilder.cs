@@ -3,9 +3,9 @@ using BlinkDatabase.Mapping;
 
 namespace BlinkDatabase.General;
 
-public static class SqlInsertBuilder
+internal static class SqlInsertBuilder
 {
-    public static string Insert<T>(T obj) where T : class, new()
+    internal static string Insert<T>(T obj) where T : class, new()
     {
         ObjectProperty[] properties = [.. ObjectProperty.GetProperties<T>().Where(p => !p.IsId)];
         string tableName = TableAttribute.GetTableName<T>();

@@ -3,9 +3,9 @@ using System.Linq.Expressions;
 
 namespace BlinkDatabase.General;
 
-public static class SqlDeleteBuilder
+internal static class SqlDeleteBuilder
 {
-    public static string Delete<T>(Expression<Func<T, bool>> expression) where T : class, new()
+    internal static string Delete<T>(Expression<Func<T, bool>> expression) where T : class, new()
     {
         string tableName = TableAttribute.GetTableName<T>();
         string query = $"DELETE FROM \"{tableName}\" " + SqlWhereBuilder.Where(expression);

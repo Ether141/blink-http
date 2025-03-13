@@ -22,9 +22,13 @@ public class SqlExpressionVisitor<T> : ExpressionVisitor where T : class, new()
 
     protected override Expression VisitMember(MemberExpression node)
     {
-        (string tableName, string columnName) = GetTableAndColumnNames(node);
-
-        if (node.Member.DeclaringType == typeof(DateTime))
+        (string? tableName, string? columnName) = GetTableAndColumnNames(node);
+        
+        if (tableName == null || columnName == null)
+        {
+            builder.Append(Expression.Lambda<Func<object>>(Expression.Convert(node, typeof(object))).Compile().Invoke());
+        } 
+        else if (node.Member.DeclaringType == typeof(DateTime))
         {
             builder.Append(GetQueryForDate(node, tableName, columnName));
         }
@@ -48,7 +52,7 @@ public class SqlExpressionVisitor<T> : ExpressionVisitor where T : class, new()
         _ => throw new NotSupportedException("You cannot compare date by this property.")
     };
 
-    private (string, string) GetTableAndColumnNames(MemberExpression node)
+    private (string?, string?) GetTableAndColumnNames(MemberExpression node)
     {
         MemberExpression tableDefiner = node;
         MemberInfo? columnMember = null;
@@ -68,10 +72,15 @@ public class SqlExpressionVisitor<T> : ExpressionVisitor where T : class, new()
                 break;
             }
         }
+        
+        if (tableDefiner.Member is not PropertyInfo propertyInfo || (propertyInfo.PropertyType.GetCustomAttribute<TableAttribute>() == null && propertyInfo.DeclaringType!.GetCustomAttribute<TableAttribute>() == null))
+        {
+            return (null, null);
+        }
 
         string tableName;
 
-        if ((tableDefiner.Member as PropertyInfo)!.PropertyType.GetCustomAttribute<TableAttribute>() != null)
+        if ((tableDefiner.Member as PropertyInfo)?.PropertyType.GetCustomAttribute<TableAttribute>() != null)
         {
             tableName = (tableDefiner.Member as PropertyInfo)!.PropertyType.GetCustomAttribute<TableAttribute>()!.TableName;
         }

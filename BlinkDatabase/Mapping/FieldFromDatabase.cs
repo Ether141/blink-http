@@ -2,14 +2,14 @@
 
 internal class FieldFromDatabase
 {
-    public string FullName { get; }
-    public Type FieldType { get; }
-    public object Value { get; }
-    public string PgsqlType { get; }
+    internal string FullName { get; }
+    internal Type FieldType { get; }
+    internal object Value { get; }
+    internal string PgsqlType { get; }
 
-    public string FieldName => FullName.Split('.')[^1];
+    internal string FieldName => FullName.Split('.')[^1];
 
-    public FieldFromDatabase(string name, Type fieldType, object value, string pgsqlType)
+    internal FieldFromDatabase(string name, Type fieldType, object value, string pgsqlType)
     {
         FullName = name;
         FieldType = fieldType;

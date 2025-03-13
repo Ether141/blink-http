@@ -1,8 +1,41 @@
-﻿using BlinkHttp.Authentication;
+﻿using BlinkDatabase;
+using BlinkDatabase.PostgreSql;
+using BlinkHttp.Authentication;
 using BlinkHttp.Authentication.Session;
 using BlinkHttp.Http;
 
 namespace MyApplication;
+
+[Route("book")]
+internal class BooksController : Controller
+{
+    private PostgreSqlRepository<Book> repo;
+
+    public override void Initialize()
+    {
+        repo = new PostgreSqlRepository<Book>((PostgreSqlConnection)Context.DatabaseConnection!);
+    }
+
+    [HttpGet("all")]
+    public IHttpResult GetAllBooks()
+    {
+        IEnumerable<Book> allBooks = repo.Select();
+        return JsonResult.FromObject(allBooks.Select(b => new { b.Id, b.Name, b.Author, LibraryId = b.Library.Id }));
+    }
+
+    [HttpGet("{id}")]
+    public IHttpResult GetBook([FromQuery] int id)
+    {
+        Book? book = repo.SelectSingle(b => b.Id == id);
+
+        if (book == null)
+        {
+            return JsonResult.FromObject(new { result = "not_found" }, System.Net.HttpStatusCode.NotFound);
+        }
+
+        return JsonResult.FromObject(new { book.Id, book.Name, book.Author, LibraryId = book.Library.Id });
+    }
+}
 
 [Route("user")]
 internal class UserController : Controller
@@ -10,9 +43,12 @@ internal class UserController : Controller
     [HttpPost]
     public IHttpResult Login([FromBody] string username, [FromBody] string password)
     {
-        (CredentialsValidationResult result, SessionInfo? sessionInfo) = ((SessionManager)Context.Authorizer!)
+        (CredentialsValidationResult result, _, IUser? user) = ((SessionManager)Context.Authorizer!)
             .Login(username, password, Context.Request.RemoteEndPoint.Address.ToString(), Context.Response);
-        return JsonResult.FromObject(new { result = result.ToString() });
+
+        return result == CredentialsValidationResult.Success ? 
+            JsonResult.FromObject(new { user!.Id, user!.Username, roles = string.Join(", ", user!.Roles) }) : 
+            JsonResult.FromObject(new { success = false }, System.Net.HttpStatusCode.Unauthorized);
     }
 
     [HttpPost]
@@ -27,7 +63,7 @@ internal class UserController : Controller
     [Authorize]
     public IHttpResult Get()
     {
-        return new TextResult("secured resource");
+        return JsonResult.FromObject(Context.User!);
     }
 
     [HttpPost("{id}/get/{guid}")]

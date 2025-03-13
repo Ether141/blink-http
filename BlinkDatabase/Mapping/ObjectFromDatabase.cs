@@ -17,7 +17,7 @@ internal class ObjectFromDatabase
 
     private int? id;
 
-    public ObjectFromDatabase(List<FieldFromDatabase> fields)
+    internal ObjectFromDatabase(List<FieldFromDatabase> fields)
     {
         Fields = fields;
     }

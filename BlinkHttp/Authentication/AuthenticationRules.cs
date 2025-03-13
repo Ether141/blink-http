@@ -1,5 +1,8 @@
 ﻿namespace BlinkHttp.Authentication;
 
+/// <summary>
+/// Encapsulates information about authentication rules - only selected users, or/and selected roles.
+/// </summary>
 public class AuthenticationRules
 {
     public bool OnlySelectedUsers => SelectedUsers != null && SelectedUsers.Length > 0;

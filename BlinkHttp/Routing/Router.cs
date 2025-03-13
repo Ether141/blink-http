@@ -2,81 +2,84 @@
 using Logging;
 using System.Reflection;
 
-namespace BlinkHttp.Routing
+namespace BlinkHttp.Routing;
+
+internal class Router : IRouter
 {
-    internal class Router : IRouter
+    private List<IRoutesCollection>? routes;
+    private readonly ILogger logger = Logger.GetLogger(typeof(Router));
+
+    public RouterOptions Options { get; }
+
+    public Router()
     {
-        private List<IRoutesCollection>? routes;
-        private readonly ILogger logger = Logger.GetLogger(typeof(Router));
+        Options = new RouterOptions();
+    }
 
-        public RouterOptions Options { get; }
+    public void InitializeAllRoutes(HttpContext initContext)
+    {
+        InitializeRoutesList();
+        InitializeControllers(initContext);
+        InitializeEndpoints();
+    }
 
-        public Router()
+    public Route? GetRoute(string url)
+    {
+        if (routes == null)
         {
-            Options = new RouterOptions();
+            throw new InvalidOperationException("Router is not initialized yet. Use InitializeAllRoutes(), or add single endpoint routing, before trying to obtain controller.");
         }
 
-        public void InitializeAllRoutes()
+        url = RouteUrlUtility.TrimAndLowerUrl(url);
+
+        foreach (IRoutesCollection routesCollection in routes)
         {
-            InitializeRoutesList();
-            InitializeControllers();
-            InitializeEndpoints();
-        }
-
-        public Route? GetRoute(string url)
-        {
-            if (routes == null)
+            Route? route = routesCollection.GetRoute(url);
+            
+            if (route != null)
             {
-                throw new InvalidOperationException("Router is not initialized yet. Use InitializeAllRoutes(), or add single endpoint routing, before trying to obtain controller.");
-            }
-
-            url = RouteUrlUtility.TrimAndLowerUrl(url);
-
-            foreach (IRoutesCollection routesCollection in routes)
-            {
-                Route? route = routesCollection.GetRoute(url);
-                
-                if (route != null)
-                {
-                    logger.Debug($"Matched route for {url} => {routesCollection.Path}/{route.Path}");
-                    return route;
-                }
-            }
-
-            logger.Debug($"Unable to find route for {url}.");
-            return null;
-        }
-
-        private void InitializeRoutesList() => routes ??= [];
-
-        private void InitializeControllers()
-        {
-            List<Type> allControllers = RoutingReflectionUtility.GetAllControllers();
-
-            foreach (Type controllerType in allControllers)
-            {
-                string route = RouteUrlUtility.GetRoutePathForController(controllerType, Options.RoutePrefix);
-                Controller controller = (Controller)Activator.CreateInstance(controllerType)!;
-                routes!.Add(new ControllerRoute(route, controller));
+                logger.Debug($"Matched route for {url} => {routesCollection.Path}/{route.Path}");
+                return route;
             }
         }
 
-        private void InitializeEndpoints()
-        {
-            foreach (IRoutesCollection routes in routes!)
-            {
-                if (routes is not ControllerRoute controllerRoute)
-                {
-                    continue;
-                }
+        logger.Debug($"Unable to find route for {url}.");
+        return null;
+    }
 
-                List<MethodInfo> allMethods = RoutingReflectionUtility.GetAllEndpointMethods(controllerRoute.ControllerType);
-                
-                foreach (MethodInfo methodInfo in allMethods)
-                {
-                    HttpAttribute attribute = methodInfo.GetCustomAttribute<HttpAttribute>()!;
-                    controllerRoute.AddRoute(attribute.GetRouteValue(methodInfo), attribute.HttpMethod, new EndpointMethod(methodInfo));
-                }
+    private void InitializeRoutesList() => routes ??= [];
+
+    private void InitializeControllers(HttpContext initContext)
+    {
+        List<Type> allControllers = RoutingReflectionUtility.GetAllControllers();
+
+        foreach (Type controllerType in allControllers)
+        {
+            string route = RouteUrlUtility.GetRoutePathForController(controllerType, Options.RoutePrefix);
+
+            Controller controller = (Controller)Activator.CreateInstance(controllerType)!;
+            controller.Context = initContext;
+            controller.Initialize();
+
+            routes!.Add(new ControllerRoute(route, controller));
+        }
+    }
+
+    private void InitializeEndpoints()
+    {
+        foreach (IRoutesCollection routes in routes!)
+        {
+            if (routes is not ControllerRoute controllerRoute)
+            {
+                continue;
+            }
+
+            List<MethodInfo> allMethods = RoutingReflectionUtility.GetAllEndpointMethods(controllerRoute.ControllerType);
+            
+            foreach (MethodInfo methodInfo in allMethods)
+            {
+                HttpAttribute attribute = methodInfo.GetCustomAttribute<HttpAttribute>()!;
+                controllerRoute.AddRoute(attribute.GetRouteValue(methodInfo), attribute.HttpMethod, new EndpointMethod(methodInfo));
             }
         }
     }

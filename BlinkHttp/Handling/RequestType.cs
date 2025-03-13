@@ -1,8 +1,7 @@
-﻿namespace BlinkHttp.Handling
+﻿namespace BlinkHttp.Handling;
+
+internal enum RequestType
 {
-    internal enum RequestType
-    {
-        File,
-        Rest
-    }
+    File,
+    Rest
 }

@@ -24,4 +24,6 @@ internal class LoginAttempt
         LastAttemptTimestamp = timestamp;
         return AttemptNum++ < maxAttemptsPerCooldown;
     }
+
+    public void ResetAttempts() => LastAttemptTimestamp = AttemptNum = 0;
 }

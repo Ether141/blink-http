@@ -3,9 +3,9 @@ using System.Linq.Expressions;
 
 namespace BlinkDatabase.General;
 
-public class SqlWhereBuilder
+internal class SqlWhereBuilder
 {
-    public static string Where<T>(Expression<Func<T, bool>> expression) where T : class, new()
+    internal static string Where<T>(Expression<Func<T, bool>> expression) where T : class, new()
     {
         var visitor = new SqlExpressionVisitor<T>();
         visitor.Visit(expression.Body);

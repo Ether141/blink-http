@@ -1,4 +1,5 @@
 ﻿using BlinkDatabase.Annotations;
+using System.Text.Json.Serialization;
 
 namespace BlinkDatabase;
 

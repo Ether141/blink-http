@@ -4,11 +4,11 @@ using System.Reflection;
 
 namespace BlinkDatabase.General;
 
-public static class SqlInnerJoinBuilder
+internal static class SqlInnerJoinBuilder
 {
-    public static (string?, string?) InnerJoin<T>() where T : class, new() => InnerJoin(typeof(T));
+    internal static (string?, string?) InnerJoin<T>() where T : class, new() => InnerJoin(typeof(T));
 
-    public static (string?, string?) InnerJoin(Type type, Type? exceptType = null)
+    internal static (string?, string?) InnerJoin(Type type, Type? exceptType = null)
     {
         string tableName = type.GetCustomAttribute<TableAttribute>()!.TableName;
         ObjectProperty[] relationProperties = [.. ObjectProperty.GetProperties(type).Where(p => p.IsRelation)];
@@ -37,7 +37,6 @@ public static class SqlInnerJoinBuilder
                     fieldNames += $"\"{relationProperty.RelationTableName}\".\"{prop.ColumnName}\" AS \"{relationProperty.RelationTableName}.{prop.ColumnName}\", ";
                 }
 
-                //innerJoin = innerJoin[..^11];
                 fieldNames = fieldNames[..^2];
 
                 (string? nextInnerJoin, string? nextFieldNames) = InnerJoin(relationProperty.StoredType, type);

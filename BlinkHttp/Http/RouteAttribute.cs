@@ -2,6 +2,9 @@
 
 namespace BlinkHttp.Http;
 
+/// <summary>
+/// Defines route for controller. Later, this route will be used in conjunction with the route of each endpoint, at the beginning of the entire route.
+/// </summary>
 [AttributeUsage(AttributeTargets.Class, Inherited = false, AllowMultiple = false)]
 public sealed class RouteAttribute : Attribute
 {

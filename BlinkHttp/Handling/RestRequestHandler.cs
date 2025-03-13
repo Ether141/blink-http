@@ -13,7 +13,7 @@ namespace BlinkHttp.Handling
         private readonly Router router;
         private readonly IAuthorizer? authorizer;
 
-        private readonly ILogger logger = Logger.GetLogger(typeof(RestRequestHandler));
+        private readonly ILogger logger = Logger.GetLogger<RestRequestHandler>();
 
         internal RestRequestHandler(Router router, IAuthorizer? authorizer)
         {
@@ -23,8 +23,8 @@ namespace BlinkHttp.Handling
 
         public override void HandleRequest(HttpContext context, ref byte[] buffer)
         {
-            HttpListenerResponse response = context.Response;
-            string path = context.Request.Url!.PathAndQuery;
+            HttpListenerResponse response = context.Response!;
+            string path = context.Request!.Url!.PathAndQuery;
             Route? route = router.GetRoute(path);
 
             if (route == null)
@@ -61,6 +61,8 @@ namespace BlinkHttp.Handling
                         response.ContentLength64 = buffer.Length;
                         return; 
                     }
+
+                    context.User = authorizationResult.User;
                 }
             }
 
@@ -78,7 +80,10 @@ namespace BlinkHttp.Handling
                 return;
             }
 
-            IHttpResult? result = endpoint.InvokeEndpoint(context, args);
+            route.AssociatedRoute!.Controller.Context.Request = context.Request!;
+            route.AssociatedRoute!.Controller.Context.Response = response;
+
+            IHttpResult? result = endpoint.InvokeEndpoint(args);
 
             if (result == null)
             {
@@ -91,6 +96,7 @@ namespace BlinkHttp.Handling
             buffer = result.Data;
             response.ContentType = result.ContentType;
             response.ContentLength64 = buffer.Length;
+            response.StatusCode = (int)result.HttpCode;
 
             if (result.ContentDisposition != null)
             {

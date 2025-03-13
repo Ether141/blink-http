@@ -27,9 +27,8 @@ namespace BlinkHttp.Routing
             }
         }
 
-        public IHttpResult? InvokeEndpoint(HttpContext context, object?[]? args)
+        public IHttpResult? InvokeEndpoint(object?[]? args)
         {
-            Controller.Context = context;
             return Method.Invoke(Controller, args) as IHttpResult;
         }
 

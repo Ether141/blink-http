@@ -1,9 +1,13 @@
 ﻿namespace BlinkHttp.Authentication;
 
+/// <summary>
+/// Defines properties and methods about user, who is associated with HTTP request, mainly required in authorization process.
+/// </summary>
 public interface IUser
 {
-    int Id { get; set; }
-    string Username { get; set; }
-    string Password { get; set; }
-    string[] Roles { get; set; }
+    int Id { get; }
+    string Username { get; }
+    string[] Roles { get; }
+
+    bool IsInRole(string role);
 }

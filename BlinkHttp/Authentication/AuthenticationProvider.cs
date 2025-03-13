@@ -19,7 +19,9 @@ internal class AuthenticationProvider : IAuthenticationProvider
             return CredentialsValidationResult.UsernameDoesNotExist;
         }
 
-        if (!ValidatePassword(user, password))
+        string hashedPassword = userInfoProvider.GetHashedPassword(user.Id)!;
+        
+        if (!ValidatePassword(hashedPassword, password))
         {
             return CredentialsValidationResult.PasswordIsWrong;
         }
@@ -28,5 +30,5 @@ internal class AuthenticationProvider : IAuthenticationProvider
         return CredentialsValidationResult.Success;
     }
 
-    internal static bool ValidatePassword(IUser user, string plainPassword) => user.Password == plainPassword;
+    internal static bool ValidatePassword(string hashedPassword, string plainPassword) => hashedPassword == plainPassword;
 }

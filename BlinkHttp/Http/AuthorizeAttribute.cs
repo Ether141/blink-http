@@ -2,6 +2,9 @@
 
 namespace BlinkHttp.Http;
 
+/// <summary>
+/// Indicates that the endpoint or whole controller requires authorization to be accessed. Also allows to define which user or what roles they must have to access this secured resource.
+/// </summary>
 [AttributeUsage(AttributeTargets.Method | AttributeTargets.Class, Inherited = false, AllowMultiple = false)]
 public sealed class AuthorizeAttribute : Attribute 
 {

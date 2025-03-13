@@ -1,10 +1,11 @@
-﻿namespace BlinkHttp.Routing
-{
-    internal interface IRouter
-    {
-        RouterOptions? Options { get; }
+﻿using BlinkHttp.Http;
 
-        void InitializeAllRoutes();
-        Route? GetRoute(string url);
-    }
+namespace BlinkHttp.Routing;
+
+internal interface IRouter
+{
+    RouterOptions? Options { get; }
+
+    void InitializeAllRoutes(HttpContext initContext);
+    Route? GetRoute(string url);
 }

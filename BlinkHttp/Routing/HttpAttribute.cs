@@ -2,6 +2,9 @@
 
 namespace BlinkHttp.Routing;
 
+/// <summary>
+/// Class which is base for all Http attributes.
+/// </summary>
 [AttributeUsage(AttributeTargets.Method, Inherited = true, AllowMultiple = false)]
 public abstract class HttpAttribute : Attribute
 {
@@ -9,9 +12,9 @@ public abstract class HttpAttribute : Attribute
     
     public abstract Http.HttpMethod HttpMethod { get; }
 
-    internal HttpAttribute() { }
+    protected HttpAttribute() { }
 
-    internal HttpAttribute(string route)
+    protected HttpAttribute(string route)
     {
         route = RouteUrlUtility.TrimAndLowerUrl(route);
 

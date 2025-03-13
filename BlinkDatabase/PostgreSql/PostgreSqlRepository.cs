@@ -7,17 +7,34 @@ using System.Reflection;
 
 namespace BlinkDatabase.PostgreSql;
 
-public class PostgreSqlRepository<T> where T : class, new()
+/// <summary>
+/// Allows to easily retrieve, insert, update or delete entites from PostgreSQL table, using given entity type. Repository is reflection of single table in the database.
+/// </summary>
+/// <typeparam name="T">Type of entity class, which is marked properly with all requied attributes. Must be class and has parameterless constructor.</typeparam>
+public class PostgreSqlRepository<T> : IRepository<T> where T : class, new()
 {
+    /// <summary>
+    /// Name of table which is associatd with this repository.
+    /// </summary>
     public string TableName { get; }
+
     internal List<ObjectFromDatabase> CurrentObjects { get; } = [];
 
     private readonly ObjectMapper<T> mapper;
     private readonly NpgsqlConnection connection;
 
-    public PostgreSqlRepository(NpgsqlConnection connection)
+    /// <summary>
+    /// Create new instance of a <seealso cref="PostgreSqlRepository{T}"/> with given connection, and opens this connection if it's not already.
+    /// </summary>
+    /// <param name="connection"></param>
+    public PostgreSqlRepository(PostgreSqlConnection connection)
     {
-        this.connection = connection;
+        if (!connection.IsConnected)
+        {
+            connection.Connect();
+        }
+
+        this.connection = (NpgsqlConnection)connection.Connection!;
         Type type = typeof(T);
 
         TableName = type.GetCustomAttribute<TableAttribute>()!.TableName;

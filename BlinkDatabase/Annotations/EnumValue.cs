@@ -2,6 +2,9 @@
 
 namespace BlinkDatabase.Annotations;
 
+/// <summary>
+/// Indicates that this enum value is reflection of enum value in the database, with given name.
+/// </summary>
 [AttributeUsage(AttributeTargets.Field, Inherited = false, AllowMultiple = false)]
 public sealed class EnumValueAttribute : Attribute
 {

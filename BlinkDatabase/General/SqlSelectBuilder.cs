@@ -4,20 +4,20 @@ using System.Linq.Expressions;
 
 namespace BlinkDatabase.General;
 
-public class SqlSelectBuilder
+internal class SqlSelectBuilder
 {
-    public static string SelectAll<T>() where T : class, new() => SelectInternal<T>(null);
+    internal static string SelectAll<T>() where T : class, new() => SelectInternal<T>(null);
 
-    public static string SelectWhere<T>(Expression<Func<T, bool>> expression) where T : class, new() => SelectInternal<T>(SqlWhereBuilder.Where(expression));
+    internal static string SelectWhere<T>(Expression<Func<T, bool>> expression) where T : class, new() => SelectInternal<T>(SqlWhereBuilder.Where(expression));
 
-    public static string SelectExist<T>(Expression<Func<T, bool>> expression) where T : class, new()
+    internal static string SelectExist<T>(Expression<Func<T, bool>> expression) where T : class, new()
     {
         string query = SelectInternal<T>(SqlWhereBuilder.Where(expression));
         query = "SELECT 1 " + query[query.IndexOf("FROM")..] + " LIMIT 1";
         return query;
     }
 
-    public static string SelectExist<T>(int id) where T : class, new()
+    internal static string SelectExist<T>(int id) where T : class, new()
     {
         string query = $"SELECT 1 FROM {TableAttribute.GetTableName<T>()} WHERE \"{ObjectProperty.GetIdProperty(typeof(T)).ColumnName}\" = {id} LIMIT 1";
         return query;
