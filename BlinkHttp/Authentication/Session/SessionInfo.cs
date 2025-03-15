@@ -3,10 +3,10 @@
 public class SessionInfo
 {
     public string SessionId { get; }
-    public int UserId { get; }
+    public string UserId { get; }
     public DateTime CreatedAt { get; }
 
-    public SessionInfo(string sessionId, int userId)
+    public SessionInfo(string sessionId, string userId)
     {
         SessionId = sessionId;
         UserId = userId;

@@ -4,5 +4,5 @@ namespace BlinkHttp.Handling;
 
 internal interface IRequestHandler
 {
-    void HandleRequest(HttpContext context, ref byte[] buffer);
+    void HandleRequest(ControllerContext context, ref byte[] buffer);
 }

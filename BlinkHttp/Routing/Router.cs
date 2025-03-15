@@ -16,10 +16,10 @@ internal class Router : IRouter
         Options = new RouterOptions();
     }
 
-    public void InitializeAllRoutes(HttpContext initContext)
+    public void InitializeAllRoutes()
     {
         InitializeRoutesList();
-        InitializeControllers(initContext);
+        InitializeControllers();
         InitializeEndpoints();
     }
 
@@ -49,19 +49,14 @@ internal class Router : IRouter
 
     private void InitializeRoutesList() => routes ??= [];
 
-    private void InitializeControllers(HttpContext initContext)
+    private void InitializeControllers()
     {
         List<Type> allControllers = RoutingReflectionUtility.GetAllControllers();
 
         foreach (Type controllerType in allControllers)
         {
             string route = RouteUrlUtility.GetRoutePathForController(controllerType, Options.RoutePrefix);
-
-            Controller controller = (Controller)Activator.CreateInstance(controllerType)!;
-            controller.Context = initContext;
-            controller.Initialize();
-
-            routes!.Add(new ControllerRoute(route, controller));
+            routes!.Add(new ControllerRoute(route, controllerType));
         }
     }
 

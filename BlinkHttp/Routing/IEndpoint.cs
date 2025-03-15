@@ -10,5 +10,5 @@ internal interface IEndpoint
     bool IsSecure { get; }
     AuthenticationRules? AuthenticationRules { get; }
 
-    IHttpResult? InvokeEndpoint(object?[]? args);
+    IHttpResult? InvokeEndpoint(Controller controller, object?[]? args);
 }

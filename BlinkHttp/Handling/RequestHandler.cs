@@ -6,7 +6,7 @@ namespace BlinkHttp.Handling;
 
 internal abstract class RequestHandler : IRequestHandler
 {
-    public abstract void HandleRequest(HttpContext context, ref byte[] buffer);
+    public abstract void HandleRequest(ControllerContext context, ref byte[] buffer);
 
     protected static byte[] ReturnNotFoundPage(HttpListenerResponse response)
     {

@@ -6,6 +6,6 @@ internal interface IRouter
 {
     RouterOptions? Options { get; }
 
-    void InitializeAllRoutes(HttpContext initContext);
+    void InitializeAllRoutes();
     Route? GetRoute(string url);
 }

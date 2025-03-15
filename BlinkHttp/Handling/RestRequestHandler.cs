@@ -21,7 +21,7 @@ namespace BlinkHttp.Handling
             this.authorizer = authorizer;
         }
 
-        public override void HandleRequest(HttpContext context, ref byte[] buffer)
+        public override void HandleRequest(ControllerContext context, ref byte[] buffer)
         {
             HttpListenerResponse response = context.Response!;
             string path = context.Request!.Url!.PathAndQuery;
@@ -80,10 +80,8 @@ namespace BlinkHttp.Handling
                 return;
             }
 
-            route.AssociatedRoute!.Controller.Context.Request = context.Request!;
-            route.AssociatedRoute!.Controller.Context.Response = response;
-
-            IHttpResult? result = endpoint.InvokeEndpoint(args);
+            Controller controller = ControllersFactory.Factory.CreateController(route.AssociatedRoute.ControllerType, context);
+            IHttpResult? result = endpoint.InvokeEndpoint(controller, args);
 
             if (result == null)
             {

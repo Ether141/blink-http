@@ -1,12 +1,11 @@
 ﻿using BlinkDatabase;
 using BlinkDatabase.General;
-using BlinkDatabase.Mapping;
 using BlinkDatabase.PostgreSql;
-using BlinkDatabase.Utilities;
 using BlinkHttp.Application;
+using BlinkHttp.Authentication;
+using BlinkHttp.Authentication.Additional;
 using BlinkHttp.Configuration;
-using BlinkHttp.Database;
-using Npgsql;
+using BlinkHttp.DependencyInjection;
 using Logging;
 
 namespace MyApplication;
@@ -27,7 +26,7 @@ internal class Program
         //user.Role!.Id = 1;
         //usersRepo.Update(user);
 
-        //IEnumerable<User> allUsers = usersRepo.Select(u => u.Role.Id == 2).OrderBy(u => u.Id);
+        //IEnumerable<User> allUsers = usersRepo.Select(u => u.Nickname == "mariad_art");
 
         //foreach (User u in allUsers)
         //{
@@ -36,6 +35,7 @@ internal class Program
 
 
         //PostgreSqlRepository<Book> booksRepo = new PostgreSqlRepository<Book>(conn);
+
         //IEnumerable<Book> books = booksRepo.Select();
 
         //foreach (var b in books)
@@ -52,33 +52,30 @@ internal class Program
         //    Console.WriteLine(library);
         //}
 
-
-
+        ApplicationConfiguration config = GetConfiguration();
         WebApplicationBuilder builder = new WebApplicationBuilder();
-        IConfiguration config = GetConfiguration();
-        (string dbHostname, string dbUsername, string dbPassword, string dbDatabase) = GetDatabaseConnectionInfo(config);
+
+        builder.Services
+            .AddConfiguration(config)
+            .AddPostgreSql()
+            .AddRepository<PostgreSqlRepository<Book>>()
+            .AddRepository<PostgreSqlRepository<User>>()
+            .AddSingleton<IUserInfoProvider, UserInfoProvider>()
+            .AddSingleton<LoginAttemptsGuard>(new LoginAttemptsGuard(10, 3));
 
         builder
-            .UseConfiguration(config)
-
+            .UseConfiguration()
             .SetRoutePrefix(config["route_prefix"])
-
-            .UseSessionAuthorization(opt => opt.EnableAttemptsLimiting(10, 3)
-                                               .EnableSessionExpiration(TimeSpan.FromHours(12)))
-
-            .UsePostgreSql(dbHostname, dbUsername, dbPassword, dbDatabase);
+            .UseSessionAuthorization(opt => opt.EnableSessionExpiration(TimeSpan.FromHours(12)));
 
         WebApplication app = builder.Build();
         await app.Run(args);
     }
 
-    private static IConfiguration GetConfiguration()
+    private static ApplicationConfiguration GetConfiguration()
     {
         ApplicationConfiguration config = new ApplicationConfiguration();
         config.LoadConfiguration();
         return config;
     }
-
-    private static (string, string, string, string) GetDatabaseConnectionInfo(IConfiguration configuration) =>
-        (configuration.Get("sql:hostname")!, configuration.Get("sql:username")!, configuration.Get("sql:password")!, configuration.Get("sql:database")!);
 }

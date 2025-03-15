@@ -7,6 +7,5 @@ public enum CredentialsValidationResult
 {
     Success,
     UsernameDoesNotExist,
-    PasswordIsWrong,
-    TooManyRequests
+    PasswordIsWrong
 }

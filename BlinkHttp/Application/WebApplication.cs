@@ -2,7 +2,8 @@
 using BlinkDatabase.PostgreSql;
 using BlinkHttp.Authentication;
 using BlinkHttp.Configuration;
-using BlinkHttp.Database;
+using BlinkHttp.DependencyInjection;
+using BlinkHttp.Handling;
 using BlinkHttp.Http;
 using Logging;
 
@@ -17,11 +18,11 @@ public class WebApplication
     private HttpServer? server;
 
     public string StartMessage { get; internal set; } = "HTTP server started. Ctrl + C to stop.";
-    public IConfiguration? Configuration { get; internal set; }
+    public IConfiguration? Configuration { get; internal init; }
     public string[]? Prefixes { get; internal set; }
-    public IAuthorizer? Authorizer { get; internal set; }
-    public IDatabaseConnection? DatabaseConnection { get; internal set; }
-    public string? RoutePrefix { get; internal set; }
+    public IAuthorizer? Authorizer { get; internal init; }
+    public string? RoutePrefix { get; internal init; }
+    internal ServicesContainer? DependencyInjector { get; init; }
 
     private readonly ILogger logger = Logger.GetLogger<WebApplication>();
 
@@ -43,7 +44,8 @@ public class WebApplication
 
         Console.CancelKeyPress += Console_CancelKeyPress;
 
-        server = new HttpServer(Authorizer, DatabaseConnection, RoutePrefix, Prefixes);
+        ControllersFactory.Initialize(DependencyInjector!);
+        server = new HttpServer(Authorizer, RoutePrefix, Prefixes);
 
         Task serverTask = server.StartAsync();
 

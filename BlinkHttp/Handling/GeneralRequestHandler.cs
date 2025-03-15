@@ -17,7 +17,7 @@ internal class GeneralRequestHandler : RequestHandler
         this.authorizer = authorizer;
     }
 
-    public override void HandleRequest(HttpContext context, ref byte[] buffer)
+    public override void HandleRequest(ControllerContext context, ref byte[] buffer)
     {
         RequestType requestType = DetermineRequestType(context.Request);
         IRequestHandler handler = GetRequestHandler(requestType);

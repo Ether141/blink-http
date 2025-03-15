@@ -10,15 +10,15 @@ namespace BlinkHttp.Routing
         public IEndpointMethod Method { get; }
         public bool IsSecure { get; }
         public AuthenticationRules? AuthenticationRules { get; }
-        internal Controller Controller { get; }
+        internal Type ControllerType { get; }
 
-        public ControllerEndpoint(Http.HttpMethod httpMethod, Controller controller, IEndpointMethod method)
+        public ControllerEndpoint(Http.HttpMethod httpMethod, Type controllerType, IEndpointMethod method)
         {
             HttpMethod = httpMethod;
-            Controller = controller;
+            ControllerType = controllerType;
             Method = method;
 
-            AuthorizeAttribute? attr = method.MethodInfo.GetCustomAttribute<AuthorizeAttribute>() ?? Controller.GetType().GetCustomAttribute<AuthorizeAttribute>();
+            AuthorizeAttribute? attr = method.MethodInfo.GetCustomAttribute<AuthorizeAttribute>() ?? controllerType.GetCustomAttribute<AuthorizeAttribute>();
             IsSecure = attr != null;
 
             if (IsSecure)
@@ -27,10 +27,7 @@ namespace BlinkHttp.Routing
             }
         }
 
-        public IHttpResult? InvokeEndpoint(object?[]? args)
-        {
-            return Method.Invoke(Controller, args) as IHttpResult;
-        }
+        public IHttpResult? InvokeEndpoint(Controller controller, object?[]? args) => Method.Invoke(controller, args) as IHttpResult;
 
         public override string? ToString() => $"[{HttpMethod}] {Method}";
     }

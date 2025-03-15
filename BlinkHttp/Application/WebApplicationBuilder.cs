@@ -3,6 +3,8 @@ using BlinkHttp.Authentication;
 using BlinkHttp.Configuration;
 using Logging;
 using BlinkDatabase.General;
+using BlinkHttp.DependencyInjection;
+using BlinkDatabase.PostgreSql;
 
 namespace BlinkHttp.Application;
 
@@ -15,15 +17,19 @@ public class WebApplicationBuilder
     private string[]? prefixes;
     private string? startMessage;
     private IAuthorizer? authorizer;
-    private IDatabaseConnection? databaseConnection;
     private string? routePrefix;
 
     /// <summary>
-    /// Associate <seealso cref="IConfiguration"/> which will be used by <seealso cref="WebApplication"/> later.
+    /// Allows to define services for dependency injection, which will be used across application.
     /// </summary>
-    public WebApplicationBuilder UseConfiguration(IConfiguration configuration)
+    public ServicesContainer Services { get; } = new ServicesContainer();
+
+    /// <summary>
+    /// Tells <seealso cref="WebApplication"/> that is should use <seealso cref="IConfiguration"/> from Serivces container, which will be used later.
+    /// </summary>
+    public WebApplicationBuilder UseConfiguration()
     {
-        this.configuration = configuration;
+        configuration = Services.Installator.GetSingletonByService<IConfiguration>();
         return this;
     }
 
@@ -46,31 +52,29 @@ public class WebApplicationBuilder
     }
 
     /// <summary>
-    /// Enables authorization based on session.
+    /// Enables authorization based on session and supplies it with <seealso cref="IUserInfoProvider"/> which is required to obtain information about user priviliges and password.
     /// </summary>
     public WebApplicationBuilder UseSessionAuthorization()
     {
-        authorizer = GetSessionManager(null);
+        authorizer = GetSessionManager(Services.Installator.GetSingletonByService<IUserInfoProvider>(), null);
+
+        if (authorizer != null)
+        {
+            Services.AddSingleton<IAuthorizer, SessionManager>((SessionManager)authorizer);
+        }
+
         return this;
     }
 
     /// <summary>
-    /// Enables authorization based on session and allows to configure such authorization.
+    /// Enables authorization based on session and supplies it with <seealso cref="IUserInfoProvider"/> which is required to obtain information about user priviliges and password. Allows to configure such authorization.
     /// </summary>
     public WebApplicationBuilder UseSessionAuthorization(Action<SessionOptions> opt)
     {
         SessionOptions sessionOptions = new SessionOptions();
         opt.Invoke(sessionOptions);
-        authorizer = GetSessionManager(sessionOptions);
-        return this;
-    }
-
-    /// <summary>
-    /// Adds support for <seealso cref="IDatabaseConnection"/>. Then this connection can be used for creating <seealso cref="IRepository{T}"/>.
-    /// </summary>
-    public WebApplicationBuilder UseDatabase(IDatabaseConnection connection)
-    {
-        databaseConnection = connection;
+        authorizer = GetSessionManager(Services.Installator.GetSingletonByService<IUserInfoProvider>(), sessionOptions);
+        Services.AddSingleton<IAuthorizer, SessionManager>((SessionManager)authorizer);
         return this;
     }
 
@@ -92,9 +96,9 @@ public class WebApplicationBuilder
         {
             Configuration = configuration,
             Authorizer = authorizer,
-            DatabaseConnection = databaseConnection,
             RoutePrefix = routePrefix,
-            Prefixes = prefixes
+            Prefixes = prefixes,
+            DependencyInjector = Services
         };
 
         if (startMessage != null)
@@ -105,20 +109,14 @@ public class WebApplicationBuilder
         return app;
     }
 
-    private static SessionManager GetSessionManager(SessionOptions? opt)
+    private static SessionManager GetSessionManager(IUserInfoProvider userInfoProvider, SessionOptions? opt)
     {
-        DatabaseUserInfoProvider userInfoProvider = new DatabaseUserInfoProvider();
         SessionStorageInMemory sessionStorage = new SessionStorageInMemory();
         AuthenticationProvider authenticationProvider = new AuthenticationProvider(userInfoProvider);
         SessionManager sessionManager = new SessionManager(sessionStorage, authenticationProvider, userInfoProvider);
 
         if (opt != null)
         {
-            if (opt.AttemptsLimitingEnabled)
-            {
-                sessionManager.EnableAttemptsLimiting(opt.AttemptsLimitingCooldown, opt.AttemptsLimitPerCooldown); 
-            }
-
             if (opt.SessionValidFor != null)
             {
                 sessionManager.EnableSessionExpiration(opt.SessionValidFor.Value);

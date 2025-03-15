@@ -26,7 +26,8 @@ public class SqlExpressionVisitor<T> : ExpressionVisitor where T : class, new()
         
         if (tableName == null || columnName == null)
         {
-            builder.Append(Expression.Lambda<Func<object>>(Expression.Convert(node, typeof(object))).Compile().Invoke());
+            object value = Expression.Lambda<Func<object>>(Expression.Convert(node, typeof(object))).Compile().Invoke();
+            builder.Append(value.GetType() == typeof(string) ? $"'{value}'" : value);
         } 
         else if (node.Member.DeclaringType == typeof(DateTime))
         {

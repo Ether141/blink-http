@@ -2,7 +2,7 @@
 
 internal class SessionStorageInMemory : ISessionStorage
 {
-    private readonly Dictionary<int, List<string>> userSessions = [];
+    private readonly Dictionary<string, List<string>> userSessions = [];
     private readonly Dictionary<string, SessionInfo> sessions = [];
 
     public void AddSession(SessionInfo sessionInfo)
@@ -39,7 +39,7 @@ internal class SessionStorageInMemory : ISessionStorage
         }
     }
 
-    public void RemoveAllSesions(int userId)
+    public void RemoveAllSesions(string userId)
     {
         if (!userSessions.TryGetValue(userId, out List<string>? allSessionsForUser))
         {

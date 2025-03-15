@@ -5,7 +5,7 @@ internal class Route
     internal string Path { get; }
     internal Http.HttpMethod HttpMethod { get; }
 
-    internal ControllerRoute? AssociatedRoute { get; private set; }
+    internal ControllerRoute AssociatedRoute { get; private set; }
     internal IEndpoint Endpoint { get; private set; }
 
     internal bool HasRouteParameters => Path.Split('/', StringSplitOptions.RemoveEmptyEntries).Any(RouteUrlUtility.IsRouteParameter);
@@ -19,7 +19,7 @@ internal class Route
     internal void CreateEndpoint(ControllerRoute associatedRoute, IEndpointMethod endpointMethod)
     {
         AssociatedRoute = associatedRoute;
-        Endpoint = new ControllerEndpoint(HttpMethod, associatedRoute.Controller, endpointMethod);
+        Endpoint = new ControllerEndpoint(HttpMethod, associatedRoute.ControllerType, endpointMethod);
     }
 
     internal bool CanRoute(string route)

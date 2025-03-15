@@ -1,8 +1,22 @@
 ﻿namespace BlinkHttp.Authentication;
 
-internal interface IUserInfoProvider
+/// <summary>
+/// Exposes methods to obtain <seealso cref="IUser"/> object with information required for authentication process.
+/// </summary>
+public interface IUserInfoProvider
 {
-    IUser? GetUser(string username);
-    IUser? GetUser(int userId);
-    string? GetHashedPassword(int userId);
+    /// <summary>
+    /// Returns <seealso cref="IUser"/> with given ID.
+    /// </summary>
+    IUser? GetUser(string userId);
+
+    /// <summary>
+    /// Returns <seealso cref="IUser"/> with given username.
+    /// </summary>
+    IUser? GetUserByUsername(string username);
+
+    /// <summary>
+    /// Returns <seealso cref="IUser"/> hashed password for user with given ID.
+    /// </summary>
+    string? GetHashedPassword(string userId);
 }

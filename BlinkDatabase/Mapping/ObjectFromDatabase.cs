@@ -3,19 +3,19 @@
 internal class ObjectFromDatabase
 {
     internal List<FieldFromDatabase> Fields { get; }
-    internal int Id
+    internal string Id
     {
         get
         {
             if (id != null)
-                return id.Value;
+                return id;
 
-            id = int.Parse(Fields.FirstOrDefault(f => f.FieldName.Equals("id", StringComparison.OrdinalIgnoreCase))!.Value.ToString()!);
-            return id.Value;
+            id = Fields.FirstOrDefault(f => f.FieldName.Equals("id", StringComparison.OrdinalIgnoreCase))!.Value.ToString()!;
+            return id;
         }
     }
 
-    private int? id;
+    private string? id;
 
     internal ObjectFromDatabase(List<FieldFromDatabase> fields)
     {

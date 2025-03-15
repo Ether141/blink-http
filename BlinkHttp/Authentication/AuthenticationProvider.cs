@@ -1,32 +1,33 @@
-﻿namespace BlinkHttp.Authentication;
+﻿using BlinkHttp.Authentication.Session;
+using System.Net;
 
-internal class AuthenticationProvider : IAuthenticationProvider
+namespace BlinkHttp.Authentication;
+
+public class AuthenticationProvider : IAuthenticationProvider
 {
     private readonly IUserInfoProvider userInfoProvider;
 
-    internal AuthenticationProvider(IUserInfoProvider userInfoProvider)
+    public AuthenticationProvider(IUserInfoProvider userInfoProvider)
     {
         this.userInfoProvider = userInfoProvider;
     }
 
     public CredentialsValidationResult ValidateCredentials(string username, string password, out IUser? obtainedUser)
     {
-        obtainedUser = null;
-        IUser? user = userInfoProvider.GetUser(username);
+        obtainedUser = userInfoProvider.GetUserByUsername(username);
 
-        if (user == null)
+        if (obtainedUser == null)
         {
             return CredentialsValidationResult.UsernameDoesNotExist;
         }
 
-        string hashedPassword = userInfoProvider.GetHashedPassword(user.Id)!;
+        string hashedPassword = userInfoProvider.GetHashedPassword(obtainedUser.Id)!;
         
         if (!ValidatePassword(hashedPassword, password))
         {
             return CredentialsValidationResult.PasswordIsWrong;
         }
 
-        obtainedUser = user;
         return CredentialsValidationResult.Success;
     }
 

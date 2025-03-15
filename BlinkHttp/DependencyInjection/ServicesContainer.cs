@@ -1,0 +1,122 @@
+﻿using System.Reflection;
+using System.Linq;
+using System.Reflection.Metadata;
+using BlinkDatabase.General;
+using BlinkDatabase.PostgreSql;
+using BlinkHttp.Configuration;
+
+namespace BlinkHttp.DependencyInjection;
+
+public class ServicesContainer
+{
+    internal Installator Installator { get; } = new Installator();
+
+    /// <summary>
+    /// Adds new singleton definition to the services that will be later used to resolve dependencies. A singleton will be created the first time a reference to it is requested, and the same instance will be used throughout the runtime of the application.
+    /// </summary>
+    public ServicesContainer AddSingleton<TService, TImplementation>() where TService : class where TImplementation : class, TService
+    {
+        if (Installator.Singletons.ContainsKey(typeof(TService)))
+        {
+            return this;
+        }
+
+        Installator.Singletons[typeof(TService)] = typeof(TImplementation);
+        return this;
+    }
+
+    /// <summary>
+    /// Adds new singleton definition to the services that will be later used to resolve dependencies. Given already created instance will be used throughout the runtime of the application.
+    /// </summary>
+    public ServicesContainer AddSingleton<TService, TImplementation>(TImplementation implementation) where TService : class where TImplementation : class, TService
+    {
+        if (Installator.Singletons.ContainsKey(typeof(TService)))
+        {
+            return this;
+        }
+
+        Installator.Singletons[typeof(TService)] = typeof(TImplementation);
+        Installator.SingletonInstances[typeof(TImplementation)] = implementation;
+        return this;
+    }
+
+    /// <summary>
+    /// Adds new singleton definition to the services that will be later used to resolve dependencies. A singleton will be created the first time a reference to it is requested, and the same instance will be used throughout the runtime of the application.
+    /// </summary>
+    public ServicesContainer AddSingleton<TImplementation>(TImplementation implementation) where TImplementation : class
+    {
+        if (Installator.Singletons.ContainsKey(typeof(TImplementation)))
+        {
+            return this;
+        }
+
+        Installator.Singletons[typeof(TImplementation)] = typeof(TImplementation);
+        Installator.SingletonInstances[typeof(TImplementation)] = implementation;
+        return this;
+    }
+
+    /// <summary>
+    /// Adds new scoped to the services that will be later used to resolve dependencies. A scoped will be created for every newly instantiated controller.
+    /// </summary>
+    public ServicesContainer AddScoped<TService, TImplementation>() where TService : class where TImplementation : class, TService
+    {
+        if (Installator.Scopeds.ContainsKey(typeof(TService)))
+        {
+            return this;
+        }
+
+        Installator.Scopeds[typeof(TService)] = typeof(TImplementation);
+        return this;
+    }
+
+    /// <summary>
+    /// Adds new <seealso cref="IConfiguration"/> implementation which will be singleton, and used throughout the runtime of the application.
+    /// </summary>
+    public ServicesContainer AddConfiguration<TConfigurationImplementation>(TConfigurationImplementation implementation) where TConfigurationImplementation : class, IConfiguration
+    {
+        if (Installator.Singletons.ContainsKey(typeof(IConfiguration)))
+        {
+            return this;
+        }
+
+        Installator.Singletons[typeof(IConfiguration)] = typeof(TConfigurationImplementation);
+        Installator.SingletonInstances[typeof(TConfigurationImplementation)] = implementation;
+        return this;
+    }
+
+    /// <summary>
+    /// Adds new repository to the services that will be later used to resolve dependencies. A repository will be created for every newly instantiated controller and <seealso cref="IDatabaseConnection"/> from Installator.Singletons container will be used.
+    /// </summary>
+    /// <remarks>Note: When you add a repository, firstly you also need to add database connection using the appropriate method.</remarks>
+    public ServicesContainer AddRepository<TRepositoryImplementation>() where TRepositoryImplementation : class
+    {
+        if (Installator.Repositories.Contains(typeof(TRepositoryImplementation)))
+        {
+            return this;
+        }
+
+        Installator.Repositories.Add(typeof(TRepositoryImplementation));
+        return this;
+    }
+
+    /// <summary>
+    /// Adds new <seealso cref="PostgreSqlConnection"/> as singleton, which will be used for handling database operations and supplying new <seealso cref="IRepository{T}"/>.
+    /// </summary>
+    /// <remarks>Note: When you add a database connection using this method, firstly you also need to add <seealso cref="IConfiguration"/> using the AddConfiguration method.</remarks>
+    public ServicesContainer AddPostgreSql()
+    {
+        IConfiguration configuration = Installator.GetSingletonByService<IConfiguration>();
+        AddPostgreSql(configuration.Get("sql:hostname")!, configuration.Get("sql:username")!, configuration.Get("sql:password")!, configuration.Get("sql:database")!);
+        return this;
+    }
+
+    /// <summary>
+    /// Adds new <seealso cref="PostgreSqlConnection"/> as singleton, which will be used for handling database operations and supplying new <seealso cref="IRepository{T}"/>.
+    /// </summary>
+    public ServicesContainer AddPostgreSql(string hostname, string username, string password, string database)
+    {
+        PostgreSqlConnection conn = new PostgreSqlConnection(hostname, username, password, database);
+        AddSingleton<IDatabaseConnection, PostgreSqlConnection>(conn);
+        return this;
+    }
+}

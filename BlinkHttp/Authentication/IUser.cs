@@ -5,9 +5,7 @@
 /// </summary>
 public interface IUser
 {
-    int Id { get; }
+    string Id { get; }
     string Username { get; }
     string[] Roles { get; }
-
-    bool IsInRole(string role);
 }

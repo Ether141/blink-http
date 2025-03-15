@@ -7,15 +7,11 @@ namespace BlinkHttp.Authentication.Session;
 /// </summary>
 public sealed class SessionManager : IAuthorizer
 {
+    public IUserInfoProvider UserInfoProvider => userInfoProvider;
+
     private readonly ISessionStorage sessionStorage;
     private readonly IAuthenticationProvider authenticationProvider;
     private readonly IUserInfoProvider userInfoProvider;
-
-    private readonly Dictionary<string, LoginAttempt> loggingAttempts = [];
-
-    private bool attemptsLimitingEnabled = false;
-    private int attemptCooldown;
-    private int attemptLimit;
 
     private TimeSpan? sessionValidFor;
 
@@ -26,66 +22,28 @@ public sealed class SessionManager : IAuthorizer
         this.userInfoProvider = userInfoProvider;
     }
 
-    internal void EnableAttemptsLimiting(int cooldown, int limit)
-    {
-        attemptsLimitingEnabled = true;
-        attemptCooldown = cooldown;
-        attemptLimit = limit;
-    }
-
     internal void EnableSessionExpiration(TimeSpan duration) => sessionValidFor = duration;
 
     /// <summary>
-    /// Attempts to login user with given username and password. If credentials are valid, creates new session for this user, tracks it and optionally adds session cookie to the given <seealso cref="HttpListenerResponse"/>.
+    /// Creates new session for given user ID, tracks this newly created session and optionally adds session cookie to the given <seealso cref="HttpListenerResponse"/>.
     /// </summary>
-    /// <param name="ipAddress">IP address of the user which will be used to track number of failed login attempts.</param>
-    /// <param name="response">Response which session cookie will be assigned to, when logging operation is successful.</param>
-    public (CredentialsValidationResult, SessionInfo?, IUser?) Login(string username, string password, string ipAddress, HttpListenerResponse? response)
+    /// <param name="response">Response which session cookie will be assigned to.</param>
+    public SessionInfo CreateSession(string userId, HttpListenerResponse? response)
     {
-        CredentialsValidationResult result = authenticationProvider.ValidateCredentials(username, password, out IUser? user);
+        SessionInfo createdSession = CreateNewSession(userId);
 
-        if (result != CredentialsValidationResult.Success)
-        {
-            if (attemptsLimitingEnabled)
-            {
-                if (!loggingAttempts.TryGetValue(ipAddress, out LoginAttempt? loginAttempt))
-                {
-                    loginAttempt = new LoginAttempt(attemptCooldown, attemptLimit);
-                    loggingAttempts[ipAddress] = loginAttempt;
-                }
-
-                if (!loginAttempt!.RegisterAttempt(DateTimeOffset.Now.ToUnixTimeSeconds()))
-                {
-                    return (CredentialsValidationResult.TooManyRequests, null, null);
-                }
-            }
-
-            return (result, null, null);
-        }
-
-        SessionInfo createdSession = CreateNewSession(user!);
-        
         if (response != null)
         {
             CookieHelper.SetSessionCookie(response, createdSession);
         }
 
-        if (attemptsLimitingEnabled)
-        {
-            if (loggingAttempts.TryGetValue(ipAddress, out LoginAttempt? loginAttempt))
-            {
-                loggingAttempts[ipAddress].ResetAttempts();
-            }
-        }
-
-        return (CredentialsValidationResult.Success, createdSession, user!);
+        return createdSession;
     }
 
     /// <summary>
     /// Invalids session from session cookie from given <seealso cref="HttpListenerRequest"/> and deletes it from the session storage.
     /// </summary>
-    /// <param name="request"></param>
-    public void Logout(HttpListenerRequest request)
+    public void InvalidSession(HttpListenerRequest request)
     {
         string? sessionId = CookieHelper.GetSessionIdFromCookie(request);
 
@@ -139,14 +97,14 @@ public sealed class SessionManager : IAuthorizer
     /// <summary>
     /// Invalids all sessions on all devices currently associated with the user with given ID.
     /// </summary>
-    public void InvalidAllSessions(int userId) => sessionStorage.RemoveAllSesions(userId);
+    public void InvalidAllSessions(string userId) => sessionStorage.RemoveAllSesions(userId);
 
     private bool DidSessionExpire(SessionInfo sessionInfo) => sessionValidFor != null && DateTime.Now > sessionInfo.CreatedAt + sessionValidFor.Value;
 
-    private SessionInfo CreateNewSession(IUser user)
+    private SessionInfo CreateNewSession(string userId)
     {
         string sessionId = SessionIdProvider.GenerateSessionId();
-        SessionInfo sessionInfo = new SessionInfo(sessionId, user.Id);
+        SessionInfo sessionInfo = new SessionInfo(sessionId, userId);
         sessionStorage.AddSession(sessionInfo);
         return sessionInfo;
     }

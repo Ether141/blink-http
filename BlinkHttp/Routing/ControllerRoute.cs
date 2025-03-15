@@ -7,17 +7,16 @@ namespace BlinkHttp.Routing;
 internal class ControllerRoute : IRoutesCollection
 {
     public string Path { get; }
-    internal Controller Controller { get; }
-
-    internal Type ControllerType => Controller.GetType();
     public IReadOnlyList<Route> Routes => routes;
+
+    internal Type ControllerType { get; }
 
     private readonly List<Route> routes = [];
 
-    public ControllerRoute(string path, Controller controller)
+    public ControllerRoute(string path, Type controllerType)
     {
         Path = path;
-        Controller = controller;
+        ControllerType = controllerType;
     }
 
     public void AddRoute(string path, Http.HttpMethod httpMethod, IEndpointMethod method)

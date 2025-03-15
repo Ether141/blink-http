@@ -13,7 +13,6 @@ internal class HttpServer
     private readonly Router router;
     private readonly GeneralRequestHandler generalHandler;
     private readonly IAuthorizer? authorizer;
-    private readonly IDatabaseConnection? databaseConnection;
     private readonly string[] prefixes;
     private readonly ILogger logger = Logger.GetLogger<HttpServer>();
     private readonly string? routePrefix;
@@ -23,16 +22,15 @@ internal class HttpServer
 
     private readonly CancellationTokenSource cts;
 
-    internal HttpServer(params string[] prefixes) : this(null, null, null, prefixes) { }
+    internal HttpServer(params string[] prefixes) : this(null, null, prefixes) { }
 
-    internal HttpServer(IAuthorizer? authorizer, IDatabaseConnection? databaseConnection, string? routePrefix, params string[] prefixes)
+    internal HttpServer(IAuthorizer? authorizer, string? routePrefix, params string[] prefixes)
     {
         logger.Debug("Initializing HTTP server...");
 
         listener = new HttpListener();
 
         this.authorizer = authorizer;
-        this.databaseConnection = databaseConnection;
         this.prefixes = prefixes;
         this.routePrefix = routePrefix;
 
@@ -52,11 +50,8 @@ internal class HttpServer
     private Router ConfigureRouter()
     {
         Router router = new Router();
-        HttpContext initContext = new HttpContext(null, null, authorizer, databaseConnection);
-
         router.Options.RoutePrefix = routePrefix;
-        router.InitializeAllRoutes(initContext);
-
+        router.InitializeAllRoutes();
         return router;
     }
 
@@ -98,7 +93,7 @@ internal class HttpServer
     {
         HttpListenerRequest request = context.Request;
         HttpListenerResponse response = context.Response;
-        HttpContext httpContext = new HttpContext(request, response, authorizer, databaseConnection);
+        ControllerContext httpContext = new ControllerContext(request, response);
 
         logger.Debug($"Received request [{request.HttpMethod}] from {request.LocalEndPoint.Address} - {request.Url}");
 

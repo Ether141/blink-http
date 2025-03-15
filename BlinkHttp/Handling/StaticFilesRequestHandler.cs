@@ -9,7 +9,7 @@ namespace BlinkHttp.Handling
     {
         private readonly ILogger logger = Logger.GetLogger(typeof(StaticFilesRequestHandler));
 
-        public override void HandleRequest(HttpContext context, ref byte[] buffer)
+        public override void HandleRequest(ControllerContext context, ref byte[] buffer)
         {
             HttpListenerRequest request = context.Request;
             HttpListenerResponse response = context.Response;

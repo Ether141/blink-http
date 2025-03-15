@@ -1,19 +1,24 @@
 ﻿using BlinkDatabase;
+using BlinkDatabase.General;
 using BlinkDatabase.PostgreSql;
 using BlinkHttp.Authentication;
+using BlinkHttp.Authentication.Additional;
 using BlinkHttp.Authentication.Session;
+using BlinkHttp.Configuration;
 using BlinkHttp.Http;
+using System.Data;
+using System.Data.Common;
 
 namespace MyApplication;
 
 [Route("book")]
 internal class BooksController : Controller
 {
-    private PostgreSqlRepository<Book> repo;
+    private readonly IRepository<Book> repo;
 
-    public override void Initialize()
+    public BooksController(IRepository<Book> repo, IDatabaseConnection db)
     {
-        repo = new PostgreSqlRepository<Book>((PostgreSqlConnection)Context.DatabaseConnection!);
+        this.repo = repo;
     }
 
     [HttpGet("all")]
@@ -40,22 +45,46 @@ internal class BooksController : Controller
 [Route("user")]
 internal class UserController : Controller
 {
+    private readonly IAuthenticationProvider authenticationProvider;
+    private readonly IAuthorizer authorizer;
+    private readonly LoginAttemptsGuard guard;
+
+    public UserController(IAuthorizer authorizer, IUserInfoProvider userInfoProvider, LoginAttemptsGuard guard)
+    {
+        this.authorizer = authorizer;
+        authenticationProvider = new AuthenticationProvider(userInfoProvider);
+        this.guard = guard;
+    }
+
     [HttpPost]
     public IHttpResult Login([FromBody] string username, [FromBody] string password)
     {
-        (CredentialsValidationResult result, _, IUser? user) = ((SessionManager)Context.Authorizer!)
-            .Login(username, password, Context.Request.RemoteEndPoint.Address.ToString(), Context.Response);
+        string ip = Request!.RemoteEndPoint.Address.ToString();
 
-        return result == CredentialsValidationResult.Success ? 
-            JsonResult.FromObject(new { user!.Id, user!.Username, roles = string.Join(", ", user!.Roles) }) : 
-            JsonResult.FromObject(new { success = false }, System.Net.HttpStatusCode.Unauthorized);
+        if (guard.ReachedAttemptsLimit(ip))
+        {
+            return JsonResult.FromObject(new { result = "ReachedMaxFailedLoginAttempts" }, System.Net.HttpStatusCode.Unauthorized);
+        }
+
+        CredentialsValidationResult validationResult = authenticationProvider.ValidateCredentials(username, password, out IUser? user);
+
+        if (validationResult != CredentialsValidationResult.Success)
+        {
+            guard.RegisterFailedAttempt(ip);
+            return JsonResult.FromObject(new { result = validationResult.ToString() }, System.Net.HttpStatusCode.Unauthorized);
+        }
+
+        guard.ResetFailedAttempts(ip);
+        ((SessionManager)authorizer).CreateSession(user!.Id, Response);
+
+        return JsonResult.FromObject(new { user!.Id, user!.Username, roles = string.Join(", ", user!.Roles) });
     }
 
     [HttpPost]
     [Authorize]
     public IHttpResult Logout()
     {
-        ((SessionManager)Context.Authorizer!).Logout(Context.Request);
+        ((SessionManager)authorizer).InvalidSession(Request!);
         return JsonResult.FromObject(new { result = "success" });
     }
 
@@ -63,7 +92,7 @@ internal class UserController : Controller
     [Authorize]
     public IHttpResult Get()
     {
-        return JsonResult.FromObject(Context.User!);
+        return JsonResult.FromObject(User!);
     }
 
     [HttpPost("{id}/get/{guid}")]
