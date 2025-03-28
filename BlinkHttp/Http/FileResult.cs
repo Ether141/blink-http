@@ -8,7 +8,7 @@ namespace BlinkHttp.Http;
 public class FileResult : IHttpResult
 {
     public byte[] Data { get; }
-    public string ContentType { get; }
+    public string? ContentType { get; }
     public string? ContentDisposition { get; }
     public HttpStatusCode HttpCode { get; set; } = HttpStatusCode.OK;
 

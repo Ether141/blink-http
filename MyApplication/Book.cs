@@ -1,7 +1,7 @@
 ﻿using BlinkDatabase.Annotations;
 using System.Text.Json.Serialization;
 
-namespace BlinkDatabase;
+namespace MyApplication;
 
 [Table("books")]
 public class Book

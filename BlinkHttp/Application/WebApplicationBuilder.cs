@@ -25,7 +25,7 @@ public class WebApplicationBuilder
     public ServicesContainer Services { get; } = new ServicesContainer();
 
     /// <summary>
-    /// Tells <seealso cref="WebApplication"/> that is should use <seealso cref="IConfiguration"/> from Serivces container, which will be used later.
+    /// Tells <seealso cref="WebApplication"/> that is should use <seealso cref="IConfiguration"/> from Services container, which will be used later.
     /// </summary>
     public WebApplicationBuilder UseConfiguration()
     {

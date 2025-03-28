@@ -42,10 +42,11 @@ public class WebApplication
             throw new NullReferenceException("Configuration is not provided.");
         }
 
-        Console.CancelKeyPress += Console_CancelKeyPress;
+        Console.CancelKeyPress += ConsoleExit;
+        AppDomain.CurrentDomain.ProcessExit += (_, _) => isServerRunning = false;
 
         ControllersFactory.Initialize(DependencyInjector!);
-        server = new HttpServer(Authorizer, RoutePrefix, Prefixes);
+        server = new HttpServer(Authorizer, Configuration, RoutePrefix, Prefixes);
 
         Task serverTask = server.StartAsync();
 
@@ -60,7 +61,7 @@ public class WebApplication
         await serverTask;
     }
 
-    private void Console_CancelKeyPress(object? sender, ConsoleCancelEventArgs e)
+    private void ConsoleExit(object? sender, ConsoleCancelEventArgs e)
     {
         isServerRunning = false;
         e.Cancel = true;

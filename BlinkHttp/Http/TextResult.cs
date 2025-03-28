@@ -9,7 +9,7 @@ namespace BlinkHttp.Http;
 public class TextResult : IHttpResult
 {
     public byte[] Data => Encoding.UTF8.GetBytes(text);
-    public string ContentType => MimeTypes.TextPlain;
+    public string? ContentType => MimeTypes.TextPlain;
     public string? ContentDisposition => null;
     public HttpStatusCode HttpCode { get; set; } = HttpStatusCode.OK;
 

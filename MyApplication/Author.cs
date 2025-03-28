@@ -1,6 +1,6 @@
 ﻿using BlinkDatabase.Annotations;
 
-namespace BlinkDatabase;
+namespace MyApplication;
 
 [Table("authors")]
 public class Author

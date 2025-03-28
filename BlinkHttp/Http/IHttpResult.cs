@@ -8,7 +8,7 @@ namespace BlinkHttp.Http;
 public interface IHttpResult
 {
     byte[] Data { get; }
-    string ContentType { get; }
+    string? ContentType { get; }
     string? ContentDisposition { get; }
     HttpStatusCode HttpCode { get; set; }
 }

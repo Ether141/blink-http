@@ -1,15 +1,17 @@
-﻿using BlinkDatabase;
-using BlinkDatabase.General;
-using BlinkDatabase.PostgreSql;
+﻿using BlinkDatabase.General;
 using BlinkHttp.Authentication;
-using BlinkHttp.Authentication.Additional;
 using BlinkHttp.Authentication.Session;
-using BlinkHttp.Configuration;
 using BlinkHttp.Http;
 using System.Data;
-using System.Data.Common;
 
 namespace MyApplication;
+
+public class BookDO
+{
+    public string Name { get; set; }
+    public int AuthorId { get; set; }
+    public int LibraryId { get; set; }
+}
 
 [Route("book")]
 internal class BooksController : Controller
@@ -28,17 +30,34 @@ internal class BooksController : Controller
         return JsonResult.FromObject(allBooks.Select(b => new { b.Id, b.Name, b.Author, LibraryId = b.Library.Id }));
     }
 
-    [HttpGet("{id}")]
+    [HttpGet("get/{id}")]
     public IHttpResult GetBook([FromQuery] int id)
     {
         Book? book = repo.SelectSingle(b => b.Id == id);
 
         if (book == null)
         {
-            return JsonResult.FromObject(new { result = "not_found" }, System.Net.HttpStatusCode.NotFound);
+            return NotFound();
         }
 
         return JsonResult.FromObject(new { book.Id, book.Name, book.Author, LibraryId = book.Library.Id });
+    }
+
+    [HttpPost("add")]
+    public IHttpResult AddBook([FromBody] BookDO book)
+    {
+        Book bookToInsert = new Book() { Name = book.Name, Library = new Library() { Id = book.LibraryId }, Author = new Author() { Id = book.AuthorId } };
+        bool success = repo.Insert(bookToInsert) == 1;
+
+        return success ? Created() : InternalServerError();
+    }
+
+    [HttpDelete("delete")]
+    public IHttpResult DeleteBook([FromBody] int id)
+    {
+        bool success = repo.Delete(b => b.Id == id) == 1;
+
+        return success ? Ok() : InternalServerError();
     }
 }
 
@@ -47,34 +66,23 @@ internal class UserController : Controller
 {
     private readonly IAuthenticationProvider authenticationProvider;
     private readonly IAuthorizer authorizer;
-    private readonly LoginAttemptsGuard guard;
 
-    public UserController(IAuthorizer authorizer, IUserInfoProvider userInfoProvider, LoginAttemptsGuard guard)
+    public UserController(IAuthorizer authorizer, IUserInfoProvider userInfoProvider)
     {
         this.authorizer = authorizer;
         authenticationProvider = new AuthenticationProvider(userInfoProvider);
-        this.guard = guard;
     }
 
     [HttpPost]
     public IHttpResult Login([FromBody] string username, [FromBody] string password)
     {
-        string ip = Request!.RemoteEndPoint.Address.ToString();
-
-        if (guard.ReachedAttemptsLimit(ip))
-        {
-            return JsonResult.FromObject(new { result = "ReachedMaxFailedLoginAttempts" }, System.Net.HttpStatusCode.Unauthorized);
-        }
-
         CredentialsValidationResult validationResult = authenticationProvider.ValidateCredentials(username, password, out IUser? user);
 
         if (validationResult != CredentialsValidationResult.Success)
         {
-            guard.RegisterFailedAttempt(ip);
             return JsonResult.FromObject(new { result = validationResult.ToString() }, System.Net.HttpStatusCode.Unauthorized);
         }
 
-        guard.ResetFailedAttempts(ip);
         ((SessionManager)authorizer).CreateSession(user!.Id, Response);
 
         return JsonResult.FromObject(new { user!.Id, user!.Username, roles = string.Join(", ", user!.Roles) });
@@ -86,48 +94,5 @@ internal class UserController : Controller
     {
         ((SessionManager)authorizer).InvalidSession(Request!);
         return JsonResult.FromObject(new { result = "success" });
-    }
-
-    [HttpPost]
-    [Authorize]
-    public IHttpResult Get()
-    {
-        return JsonResult.FromObject(User!);
-    }
-
-    [HttpPost("{id}/get/{guid}")]
-    public IHttpResult Get([FromQuery] int id, [FromQuery] string guid, [FromBody] UserInfo userInfo)
-    {
-        return JsonResult.FromObject(userInfo);
-    }
-
-    [HttpGet]
-    public IHttpResult GetB([FromBody, Optional] string _str, [FromBody] int _int, [FromBody] bool _bool, [FromBody] float _float, [FromBody] double _double)
-    {
-        return JsonResult.FromObject(new { _str, _int, _bool, _float, _double });
-    }
-
-    [HttpGet]
-    public IHttpResult GetArray([FromBody] List<int> values)
-    {
-        return JsonResult.FromObject(values);
-    }
-
-    [HttpGet("file/get")]
-    public IHttpResult GetFile([FromBody] string fileName)
-    {
-        byte[] file = File.ReadAllBytes("C:/Users/ether/Desktop/image.jpg");
-        return FileResult.Attachment(file, MimeTypes.ImageJpeg, fileName);
-    }
-}
-
-[Authorize]
-[Route("secured")]
-internal class SecuredResources : Controller
-{
-    [HttpGet]
-    public IHttpResult Get()
-    {
-        return new TextResult("secured resource");
     }
 }

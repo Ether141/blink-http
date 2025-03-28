@@ -1,5 +1,6 @@
 ﻿using BlinkDatabase.General;
 using BlinkHttp.Authentication;
+using BlinkHttp.Configuration;
 using BlinkHttp.Handling;
 using BlinkHttp.Routing;
 using Logging;
@@ -13,6 +14,7 @@ internal class HttpServer
     private readonly Router router;
     private readonly GeneralRequestHandler generalHandler;
     private readonly IAuthorizer? authorizer;
+    private readonly IConfiguration? configuration;
     private readonly string[] prefixes;
     private readonly ILogger logger = Logger.GetLogger<HttpServer>();
     private readonly string? routePrefix;
@@ -22,9 +24,7 @@ internal class HttpServer
 
     private readonly CancellationTokenSource cts;
 
-    internal HttpServer(params string[] prefixes) : this(null, null, prefixes) { }
-
-    internal HttpServer(IAuthorizer? authorizer, string? routePrefix, params string[] prefixes)
+    internal HttpServer(IAuthorizer? authorizer, IConfiguration? configuration, string? routePrefix, params string[] prefixes)
     {
         logger.Debug("Initializing HTTP server...");
 
@@ -44,7 +44,7 @@ internal class HttpServer
         cts = new CancellationTokenSource();
 
         router = ConfigureRouter();
-        generalHandler = new GeneralRequestHandler(router, authorizer);
+        generalHandler = new GeneralRequestHandler(router, authorizer, configuration);
     }
 
     private Router ConfigureRouter()

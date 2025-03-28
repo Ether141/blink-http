@@ -29,7 +29,8 @@ namespace BlinkHttp.Handling
 
             if (route == null)
             {
-                buffer = ReturnNotFoundPage(response);
+                response.StatusCode = (int)HttpStatusCode.NotFound;
+                response.ContentLength64 = 0;
                 return;
             }
 

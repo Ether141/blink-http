@@ -1,11 +1,8 @@
 ﻿using BlinkDatabase;
-using BlinkDatabase.General;
 using BlinkDatabase.PostgreSql;
 using BlinkHttp.Application;
 using BlinkHttp.Authentication;
-using BlinkHttp.Authentication.Additional;
 using BlinkHttp.Configuration;
-using BlinkHttp.DependencyInjection;
 using Logging;
 
 namespace MyApplication;
@@ -14,7 +11,7 @@ internal class Program
 {
     public static async Task Main(string[] args)
     {
-        Logger.Configure(settings => settings.UseConsole(opt => opt.UseStandardOutput()));
+        Logger.Configure(settings => settings.UseConsole(opt => opt.EnableColorfulConsole()));
 
         //Book book = new Book() { Id = 1, Library = new Library() { Id = 1 }};
 
@@ -60,8 +57,7 @@ internal class Program
             .AddPostgreSql()
             .AddRepository<PostgreSqlRepository<Book>>()
             .AddRepository<PostgreSqlRepository<User>>()
-            .AddSingleton<IUserInfoProvider, UserInfoProvider>()
-            .AddSingleton<LoginAttemptsGuard>(new LoginAttemptsGuard(10, 3));
+            .AddSingleton<IUserInfoProvider, UserInfoProvider>();
 
         builder
             .UseConfiguration()

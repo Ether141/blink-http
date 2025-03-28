@@ -12,7 +12,7 @@ public class JsonResult : IHttpResult
     private readonly string jsonValue;
 
     public byte[] Data => Encoding.UTF8.GetBytes(jsonValue);
-    public string ContentType => MimeTypes.ApplicationJson;
+    public string? ContentType => MimeTypes.ApplicationJson;
     public string? ContentDisposition => null;
     public HttpStatusCode HttpCode { get; set; } = HttpStatusCode.OK;
 

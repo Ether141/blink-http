@@ -28,8 +28,7 @@ public class Logger : ILogger
 
         if (loggerSettings.IsConsoleUsed)
         {
-            loggersSet.Add(new ConsoleLogger(loggerSettings.ConsoleLoggerOptions?.MessageFormat, loggerSettings.ConsoleLoggerOptions?.ColorfulConsole ?? false,
-                                             loggerSettings.ConsoleLoggerOptions?.StandardOutput ?? false));
+            loggersSet.Add(new ConsoleLogger(loggerSettings.ConsoleLoggerOptions?.MessageFormat, loggerSettings.ConsoleLoggerOptions?.ColorfulConsole ?? false));
         }
 
         if (loggerSettings.IsFileUsed)
@@ -74,7 +73,7 @@ public class Logger : ILogger
 
     private void CallAllLoggers(string message, LogLevel level)
     {
-        foreach (var logger in loggers)
+        foreach (IGeneralLogger logger in loggers)
         {
             logger.Log(message, name, level);
         }

@@ -17,7 +17,7 @@ internal class NamesComparer : IEqualityComparer<string>
         return splitX == splitY;
     }
 
-    private static string? NormalizeName(string? input)
+    internal static string? NormalizeName(string? input, string delimeter = "")
     {
         if (string.IsNullOrWhiteSpace(input))
         {
@@ -31,8 +31,9 @@ internal class NamesComparer : IEqualityComparer<string>
             return null;
         }
 
+        normalized = string.Concat(normalized.Select(x => Char.IsUpper(x) ? " " + x : x.ToString())).TrimStart(' ');
         string[] words = [.. normalized.Split(' ', StringSplitOptions.RemoveEmptyEntries).Select(w => w.ToLower())];
-        return string.Join("", words);
+        return string.Join(delimeter, words);
     }
 
     public int GetHashCode(string obj) => throw new NotImplementedException();
