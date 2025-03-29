@@ -41,11 +41,7 @@ public class Logger : ILogger
 
     public static ILogger GetLogger<T>() => GetLogger(typeof(T));
 
-    public static ILogger GetLogger(Type forType)
-    {
-        int thisTypesLoggers = loggersForTypes.Count(pair => pair.Key[..pair.Key.IndexOf('(')].Equals(forType.Name, StringComparison.OrdinalIgnoreCase));
-        return GetLogger($"{forType.Name}({thisTypesLoggers})");
-    }
+    public static ILogger GetLogger(Type forType) => GetLogger(forType.Name);
 
     public static ILogger GetLogger(string name)
     {
