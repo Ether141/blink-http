@@ -12,6 +12,8 @@ internal static class FilesManager
 
     internal static string GetLocalPathFile(Uri url) => url.AbsolutePath == "/" ? Path.Combine(WebFolderPath, "index.html") : Path.Combine(WebFolderPath, url.AbsolutePath[1..]);
 
+    internal static string GetLocalPathFile(string localPath) => Path.Combine(WebFolderPath, localPath);
+
     internal static byte[] LoadFile(Uri url) => LoadFile(GetLocalPathFile(url));
 
     internal static byte[] LoadFile(string localPath)
