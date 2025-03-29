@@ -4,15 +4,17 @@ internal class ConsoleLogger : IGeneralLogger
 {
     private readonly string? format;
     private readonly bool colorful;
+    private readonly ConsoleColor defaultColor = ConsoleColor.Gray;
+    private readonly object _lock = new object();
 
-    private (string keyword, ConsoleColor color)[] keywords =
-    [
-        ("INFO", ConsoleColor.Blue),
-        ("DEBUG", ConsoleColor.DarkGray),
-        ("WARN", ConsoleColor.DarkYellow),
-        ("ERROR", ConsoleColor.Red),
-        ("CRIT", ConsoleColor.DarkRed)
-    ];
+    private Dictionary<string, ConsoleColor> keywords = new()
+    {
+        { "INFO", ConsoleColor.Blue },
+        { "DEBUG", ConsoleColor.DarkGray },
+        { "WARN", ConsoleColor.DarkYellow },
+        { "ERROR", ConsoleColor.Red },
+        { "CRIT", ConsoleColor.DarkRed}
+    };
 
     public ConsoleLogger(string? format, bool colorful)
     {
@@ -24,19 +26,23 @@ internal class ConsoleLogger : IGeneralLogger
 
     private void Write(string message, string? loggerName, LogLevel logLevel)
     {
-        message = LoggingHelper.GetFormattedString(message, loggerName, logLevel, format);
-
-        if (!colorful)
+        lock (_lock)
         {
-            Console.WriteLine(message);
-            return;
-        }
+            message = LoggingHelper.GetFormattedString(message, loggerName, logLevel, format);
 
-        WriteColorfulMessage(message);
+            if (!colorful)
+            {
+                Console.WriteLine(message);
+                return;
+            }
+
+            WriteColorfulMessage(message); 
+        }
     }
 
     private void WriteColorfulMessage(string message)
     {
+        Console.ForegroundColor = defaultColor;
         List<(int, int, ConsoleColor)> indexes = [];
 
         foreach ((string keyword, ConsoleColor color) in keywords)
@@ -58,10 +64,9 @@ internal class ConsoleLogger : IGeneralLogger
             return;
         }
 
-        ConsoleColor mainColor = Console.ForegroundColor;
         List<(int ind, int len, ConsoleColor col)> ordered = [.. indexes.OrderBy(i => i.Item1)];
 
-        ordered.Insert(0, (0, ordered[0].ind, mainColor));
+        ordered.Insert(0, (0, ordered[0].ind, defaultColor));
         Console.Write(message[..ordered[1].ind]);
 
         for (int i = 1; i < ordered.Count; i++)
@@ -69,9 +74,10 @@ internal class ConsoleLogger : IGeneralLogger
             Console.Write(message[(ordered[i - 1].ind + ordered[i - 1].len)..ordered[i].ind]);
             Console.ForegroundColor = ordered[i].col;
             Console.Write(message[ordered[i].ind..(ordered[i].ind + ordered[i].len)]);
-            Console.ForegroundColor = mainColor;
+            Console.ForegroundColor = defaultColor;
         }
 
+        Console.ForegroundColor = defaultColor;
         Console.Write(message[(ordered[^1].ind + ordered[^1].len)..]);
         Console.WriteLine();
     }
