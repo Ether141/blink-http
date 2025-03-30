@@ -1,6 +1,6 @@
 ﻿namespace Logging;
 
-public abstract class LoggerOptions
+public class LoggerOptions
 {
     internal string? MessageFormat { get; private set; }
 

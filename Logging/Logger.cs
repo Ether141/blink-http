@@ -28,7 +28,7 @@ public class Logger : ILogger
 
         if (loggerSettings.IsConsoleUsed)
         {
-            loggersSet.Add(new ConsoleLogger(loggerSettings.ConsoleLoggerOptions?.MessageFormat, loggerSettings.ConsoleLoggerOptions?.ColorfulConsole ?? false));
+            loggersSet.Add(new ConsoleLogger(loggerSettings.ConsoleLoggerOptions?.MessageFormat));
         }
 
         if (loggerSettings.IsFileUsed)
