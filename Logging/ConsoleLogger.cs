@@ -9,11 +9,7 @@ internal class ConsoleLogger : IGeneralLogger
         this.format = format;
     }
 
-    public void Log(string message, string? loggerName, LogLevel logLevel) => Write(message, loggerName, logLevel);
+    public void Log(LogMessage message) => Write(message.GetFormattedMessage(format));
 
-    private void Write(string message, string? loggerName, LogLevel logLevel)
-    {
-        message = LoggingHelper.GetFormattedString(message, loggerName, logLevel, format);
-        Console.WriteLine(message);
-    }
+    private void Write(string message) => Console.WriteLine(message);
 }

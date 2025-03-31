@@ -2,7 +2,7 @@
 
 namespace Logging;
 
-internal static class LoggingHelper
+internal static class LogFormatter
 {
     internal const string ShortDateFormat = "%d";
     internal const string LongDateFormat = "%D";
@@ -73,5 +73,5 @@ internal static class LoggingHelper
         return pad;
     }
 
-    private static string Pad(string text, int pad) => pad > 0 ? text.PadLeft(pad) : text.PadRight(pad *= -1);
+    private static string Pad(string text, int pad) => pad > 0 ? text.PadLeft(pad) : text.PadRight(-pad);
 }

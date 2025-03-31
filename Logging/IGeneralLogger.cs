@@ -2,5 +2,5 @@
 
 internal interface IGeneralLogger
 {
-    public void Log(string message, string? loggerName, LogLevel logLevel);
+    void Log(LogMessage message);
 }

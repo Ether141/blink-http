@@ -5,12 +5,12 @@ public class Logger : ILogger
     private static readonly Dictionary<string, ILogger> loggersForTypes = [];
     private static readonly HashSet<IGeneralLogger> loggersSet = [];
 
-    private readonly IGeneralLogger[] loggers;
+    private readonly HashSet<IGeneralLogger> loggers;
     private readonly string name;
 
     private static bool isConfigured = false;
 
-    private Logger(string name, IGeneralLogger[] loggers)
+    private Logger(string name, HashSet<IGeneralLogger> loggers)
     {
         this.name = name;
         this.loggers = loggers;
@@ -39,7 +39,20 @@ public class Logger : ILogger
         isConfigured = true;
     }
 
-    public static ILogger GetLogger<T>() => GetLogger(typeof(T));
+    public static void CleanupLoggers()
+    {
+        foreach (IGeneralLogger logger in loggersSet)
+        {
+            if (logger is IDisposable disposable)
+            {
+                disposable.Dispose();
+            }
+        }
+
+        loggersSet.Clear();
+    }
+
+    public static ILogger GetLogger<T>() => GetLogger(typeof(T).Name);
 
     public static ILogger GetLogger(Type forType) => GetLogger(forType.Name);
 
@@ -50,12 +63,10 @@ public class Logger : ILogger
             return value;
         }
 
-        value = new Logger(name, GetLoggersSet());
+        value = new Logger(name, loggersSet);
         loggersForTypes.Add(name, value);
         return value;
     }
-
-    private static IGeneralLogger[] GetLoggersSet() => [.. loggersSet];
 
     public void Debug(string message) => CallAllLoggers(message, LogLevel.Debug);
 
@@ -69,9 +80,11 @@ public class Logger : ILogger
 
     private void CallAllLoggers(string message, LogLevel level)
     {
+        LogMessage msg = new LogMessage(message, level, name);
+
         foreach (IGeneralLogger logger in loggers)
         {
-            logger.Log(message, name, level);
+            logger.Log(msg);
         }
     }
 }
