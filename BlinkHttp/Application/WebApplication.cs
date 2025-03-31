@@ -57,6 +57,7 @@ public class WebApplication
         while (isServerRunning) { }
 
         server.Stop();
+        Logger.CleanupLoggers();
 
         await serverTask;
     }

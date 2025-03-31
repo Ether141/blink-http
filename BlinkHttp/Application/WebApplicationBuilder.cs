@@ -79,6 +79,15 @@ public class WebApplicationBuilder
     }
 
     /// <summary>
+    /// Configures logging based on the provided logger settings.
+    /// </summary>
+    public WebApplicationBuilder ConfigureLogging(Action<LoggerSettings> settings)
+    {
+        Logger.Configure(settings);
+        return this;
+    }
+
+    /// <summary>
     /// Sets optional route prefix, for all routes, e.g. "api".
     /// </summary>
     public WebApplicationBuilder SetRoutePrefix(string? prefix)
