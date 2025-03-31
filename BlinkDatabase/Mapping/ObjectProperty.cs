@@ -32,9 +32,13 @@ internal class ObjectProperty
 
     internal string GetAsSqlString(object obj)
     {
-        object value = Get(obj)!;
+        object? value = Get(obj);
 
-        if (value.GetType() == typeof(string))
+        if (value == null)
+        {
+            return "NULL";
+        }
+        else if (value.GetType() == typeof(string))
         {
             string val = ((string)value).Replace("'", "''");
             return $"'{val}'";
