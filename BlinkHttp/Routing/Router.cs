@@ -7,7 +7,7 @@ namespace BlinkHttp.Routing;
 internal class Router : IRouter
 {
     private List<IRoutesCollection>? routes;
-    private readonly ILogger logger = Logger.GetLogger(typeof(Router));
+    private readonly ILogger logger = Logger.GetLogger<Router>();
 
     public RouterOptions Options { get; }
 

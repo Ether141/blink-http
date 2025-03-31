@@ -10,7 +10,7 @@ namespace BlinkHttp.Handling
 {
     internal class StaticFilesRequestHandler : RequestHandler
     {
-        private readonly ILogger logger = Logger.GetLogger(typeof(StaticFilesRequestHandler));
+        private readonly ILogger logger = Logger.GetLogger<StaticFilesRequestHandler>();
         private readonly IConfiguration? configuration;
         private readonly IAuthorizer? authorizer;
 
@@ -88,33 +88,17 @@ namespace BlinkHttp.Handling
             return authorizer.Authorize(request, new AuthenticationRules(null, [ accessRestriction ]));
         }
 
-        private static byte[] ReturnNotFoundPage(HttpListenerResponse response)
+        private static byte[] ReturnNotFoundPage(HttpListenerResponse response) => ReturnPage(response, StaticHtmlResources.GetErrorPageNotFound(), HttpStatusCode.NotFound);
+
+        private static byte[] ReturnUnauthorizedPage(HttpListenerResponse response) => ReturnPage(response, StaticHtmlResources.GetErrorPageUnauthorizedError(), HttpStatusCode.Unauthorized);
+
+        private static byte[] ReturnForbiddenPage(HttpListenerResponse response) => ReturnPage(response, StaticHtmlResources.GetErrorPageForbiddenError(), HttpStatusCode.Forbidden);
+
+        private static byte[] ReturnPage(HttpListenerResponse response, string s, HttpStatusCode status)
         {
-            byte[] buffer = Encoding.UTF8.GetBytes(StaticHtmlResources.GetErrorPageNotFound());
+            byte[] buffer = Encoding.UTF8.GetBytes(s);
 
-            response.StatusCode = (int)HttpStatusCode.NotFound;
-            response.ContentType = MimeTypes.TextHtml;
-            response.ContentLength64 = buffer.Length;
-
-            return buffer;
-        }
-
-        private static byte[] ReturnUnauthorizedPage(HttpListenerResponse response)
-        {
-            byte[] buffer = Encoding.UTF8.GetBytes(StaticHtmlResources.GetErrorPageUnauthorizedError());
-
-            response.StatusCode = (int)HttpStatusCode.Unauthorized;
-            response.ContentType = MimeTypes.TextHtml;
-            response.ContentLength64 = buffer.Length;
-
-            return buffer;
-        }
-
-        private static byte[] ReturnForbiddenPage(HttpListenerResponse response)
-        {
-            byte[] buffer = Encoding.UTF8.GetBytes(StaticHtmlResources.GetErrorPageForbiddenError());
-
-            response.StatusCode = (int)HttpStatusCode.Forbidden;
+            response.StatusCode = (int)status;
             response.ContentType = MimeTypes.TextHtml;
             response.ContentLength64 = buffer.Length;
 

@@ -26,7 +26,7 @@ public class ApplicationConfiguration : IConfiguration
     public const string DefaultConfigFileName = "config.cfg";
 
     private Dictionary<string, string>? values;
-    private readonly ILogger logger = Logger.GetLogger(typeof(ApplicationConfiguration));
+    private readonly ILogger logger = Logger.GetLogger<ApplicationConfiguration>();
     private ConfigurationValuesProvider valuesProvider;
 
     /// <summary>
