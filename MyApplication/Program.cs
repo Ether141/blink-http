@@ -11,7 +11,7 @@ internal class Program
 {
     public static async Task Main(string[] args)
     {
-        Logger.Configure(settings => settings.UseConsole(opt => opt.EnableColorfulConsole()));
+        Logger.Configure(settings => settings.UseConsole());
 
         //Book book = new Book() { Id = 1, Library = new Library() { Id = 1 }};
 
