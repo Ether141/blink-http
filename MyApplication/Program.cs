@@ -11,8 +11,6 @@ internal class Program
 {
     public static async Task Main(string[] args)
     {
-        Logger.Configure(settings => settings.UseConsole());
-
         //Book book = new Book() { Id = 1, Library = new Library() { Id = 1 }};
 
         //PostgreSqlConnection conn = new PostgreSqlConnection("172.18.133.85", "postgres", "password", "postgres");
@@ -60,9 +58,10 @@ internal class Program
             .AddSingleton<IUserInfoProvider, UserInfoProvider>();
 
         builder
+            .ConfigureLogging(s => s.UseConsole())
             .UseConfiguration()
-            .SetRoutePrefix(config["route_prefix"])
-            .UseSessionAuthorization(opt => opt.EnableSessionExpiration(TimeSpan.FromHours(12)));
+            .SetRoutePrefix(config["route_prefix"]);
+            //.UseSessionAuthorization(opt => opt.EnableSessionExpiration(TimeSpan.FromHours(12)));
 
         WebApplication app = builder.Build();
         await app.Run(args);
