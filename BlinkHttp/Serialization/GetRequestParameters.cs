@@ -8,7 +8,7 @@ namespace BlinkHttp.Serialization;
 internal static class GetRequestParameters
 {
     internal static bool CompareArgumentsAndParametersCount(Route route, MethodInfo methodInfo) =>
-        (GetRouteParameters(route.Path)?.Length ?? 0) + (GetQueryParameters(route.Path)?.Length ?? 0) == methodInfo.GetParameters().Where(m => m.GetCustomAttribute<FromQueryAttribute>() != null && m.GetCustomAttribute<OptionalAttribute>() == null).Count();
+        (GetRouteParameters(route.Path)?.Length ?? 0) + (GetQueryParameters(route.Path)?.Length ?? 0) == methodInfo.GetParameters().Where(m => m.GetCustomAttribute<FromQueryAttribute>() != null).Count();
 
     internal static object?[]? ExtractArguments(UrlParameter[]? urlParameters, MethodInfo methodInfo)
     {
@@ -99,7 +99,7 @@ internal static class GetRequestParameters
     {
         url = RouteUrlUtility.RemoveQuery(url);
 
-        string[] templateSplit = template.Split('/', StringSplitOptions.RemoveEmptyEntries);
+        string[] templateSplit = RouteUrlUtility.RemoveQuery(template).Split('/', StringSplitOptions.RemoveEmptyEntries);
         string[] urlSplit = url.Split('/', StringSplitOptions.RemoveEmptyEntries);
 
         if (templateSplit.Length != urlSplit.Length)
