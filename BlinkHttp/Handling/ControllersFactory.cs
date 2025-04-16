@@ -14,9 +14,18 @@ internal class ControllersFactory
         this.services = services;
     }
 
-    internal Controller CreateController(Type type, ControllerContext context)
+    internal Controller? CreateController(Type type, ControllerContext context)
     {
-        Controller controller = (Controller)services.Installator.InstantiateClass(type);
+        Controller? controller = null;
+
+        try
+        {
+            controller = (Controller)services.Installator.InstantiateClass(type);
+        }
+        catch
+        {
+            return null;
+        }
 
         controller.Request = context.Request;
         controller.Response = context.Response;
