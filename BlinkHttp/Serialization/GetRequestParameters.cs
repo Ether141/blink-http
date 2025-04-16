@@ -49,7 +49,8 @@ internal static class GetRequestParameters
 
             try
             {
-                args.Add(Convert.ChangeType(urlParameter.Value, parameterInfo.ParameterType, CultureHelper.DefaultCulture));
+                Type targetType = Nullable.GetUnderlyingType(parameterInfo.ParameterType) ?? parameterInfo.ParameterType;
+                args.Add(Convert.ChangeType(urlParameter.Value, targetType, CultureHelper.DefaultCulture));
             }
             catch
             {

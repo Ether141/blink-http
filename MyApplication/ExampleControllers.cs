@@ -24,23 +24,22 @@ internal class BooksController : Controller
     }
 
     [HttpGet("all?start={start}&end={end}")]
-    public IHttpResult GetAllBooks([FromQuery, Optional] int start, [FromQuery, Optional] int end)
+    public IHttpResult GetAllBooks([FromQuery, Optional] int? start, [FromQuery, Optional] int? end)
     {
         IEnumerable<Book> allBooks = repo.Select();
         IEnumerable<Book> result;
 
-        if (start != 0 || end != 0)
+        if (start != null || end != null)
         {
-            if (start > 0 && end == 0)
-            {
-                end = allBooks.Count();
-            }
+            start ??= 0;
+            end ??= allBooks.Count();
 
             if (start < 0 || end > allBooks.Count() || start >= end)
             {
-                return NotFound();
+                return BadRequest();
             }
-            result = [.. allBooks.Skip(start).Take(end - start)];
+
+            result = [.. allBooks.Skip((int)start).Take((int)end - (int)start)];
         }
         else
         {
