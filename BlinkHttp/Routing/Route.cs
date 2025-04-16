@@ -25,8 +25,9 @@ internal class Route
     internal bool CanRoute(string route)
     {
         route = RouteUrlUtility.RemoveQuery(route);
+        string path = RouteUrlUtility.RemoveQuery(Path);
 
-        string[] pathSplit = Path.Split('/', StringSplitOptions.RemoveEmptyEntries);
+        string[] pathSplit = path.Split('/', StringSplitOptions.RemoveEmptyEntries);
         string[] routeSplit = route.Split('/', StringSplitOptions.RemoveEmptyEntries);
 
         if (pathSplit.Length != routeSplit.Length)
