@@ -60,8 +60,8 @@ internal class Program
         builder
             .ConfigureLogging(s => s.UseConsole())
             .UseConfiguration()
-            .SetRoutePrefix(config["route_prefix"]);
-            //.UseSessionAuthorization(opt => opt.EnableSessionExpiration(TimeSpan.FromHours(12)));
+            .SetRoutePrefix(config["route_prefix"])
+            .UseSessionAuthorization(opt => opt.EnableSessionExpiration(TimeSpan.FromHours(12)));
 
         WebApplication app = builder.Build();
         await app.Run(args);
