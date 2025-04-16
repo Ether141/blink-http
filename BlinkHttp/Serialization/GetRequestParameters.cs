@@ -16,13 +16,14 @@ internal static class GetRequestParameters
         ParameterInfo[] queryParameters = [.. parameters.Where(p => p.GetCustomAttribute<FromQueryAttribute>() != null)];
         ParameterInfo[] optionalParameters = [.. queryParameters.Where(p => p.GetCustomAttribute<OptionalAttribute>() != null)];
         int requiredParameters = parameters.Count;
+        int requiredQueryParameters = queryParameters.Length - optionalParameters.Length;
 
         if (urlParameters == null && parameters.All(p => p.GetCustomAttribute<OptionalAttribute>() != null))
         {
             return [.. Enumerable.Repeat<object?>(null, requiredParameters)];
         }
 
-        if ((parameters.Count > 0 && urlParameters == null) || urlParameters!.Length < optionalParameters.Length)
+        if ((parameters.Count > 0 && urlParameters == null) || urlParameters!.Length < requiredQueryParameters)
         {
             throw new UrlInvalidFormatException();
         }
@@ -42,6 +43,7 @@ internal static class GetRequestParameters
 
             if (urlParameter == null)
             {
+                args.Add(null);
                 continue;
             }
 

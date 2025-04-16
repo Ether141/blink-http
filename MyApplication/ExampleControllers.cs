@@ -23,17 +23,31 @@ internal class BooksController : Controller
         this.repo = repo;
     }
 
-    [HttpGet("all?limit={limit}")]
-    public IHttpResult GetAllBooks([FromQuery, Optional] int limit)
+    [HttpGet("all?start={start}&end={end}")]
+    public IHttpResult GetAllBooks([FromQuery, Optional] int start, [FromQuery, Optional] int end)
     {
         IEnumerable<Book> allBooks = repo.Select();
+        IEnumerable<Book> result;
 
-        if (limit > 0 && limit < allBooks.Count())
+        if (start != 0 || end != 0)
         {
-            allBooks = allBooks.Take(limit);
+            if (start > 0 && end == 0)
+            {
+                end = allBooks.Count();
+            }
+
+            if (start < 0 || end > allBooks.Count() || start >= end)
+            {
+                return NotFound();
+            }
+            result = [.. allBooks.Skip(start).Take(end - start)];
+        }
+        else
+        {
+            result = allBooks;
         }
 
-        return JsonResult.FromObject(allBooks.Select(b => new { b.Id, b.Name, b.Author, LibraryId = b.Library.Id }));
+        return JsonResult.FromObject(result.Select(b => new { b.Id, b.Name, b.Author, LibraryId = b.Library.Id }));
     }
 
     [HttpGet("get/{id}")]
