@@ -23,10 +23,16 @@ internal class BooksController : Controller
         this.repo = repo;
     }
 
-    [HttpGet("all")]
-    public IHttpResult GetAllBooks()
+    [HttpGet("all?limit={limit}")]
+    public IHttpResult GetAllBooks([FromQuery, Optional] int limit)
     {
         IEnumerable<Book> allBooks = repo.Select();
+
+        if (limit > 0 && limit < allBooks.Count())
+        {
+            allBooks = allBooks.Take(limit);
+        }
+
         return JsonResult.FromObject(allBooks.Select(b => new { b.Id, b.Name, b.Author, LibraryId = b.Library.Id }));
     }
 

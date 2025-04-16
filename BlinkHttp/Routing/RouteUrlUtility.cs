@@ -71,8 +71,7 @@ namespace BlinkHttp.Routing
                 return null;
             }
 
-            url = RemoveRouteParameters(url);
-            return url[..index];
+            return url[index..];
         }
 
         internal static string? GetRouteParameters(string url)

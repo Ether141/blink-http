@@ -18,7 +18,7 @@ public abstract class HttpAttribute : Attribute
     {
         route = RouteUrlUtility.TrimAndLowerUrl(route);
 
-        if (string.IsNullOrWhiteSpace(route) || (!route.StartsWith('{') && !RouteUrlUtility.IsValidRestApiUrl(RouteUrlUtility.RemoveRouteParameters(route))))
+        if (string.IsNullOrWhiteSpace(route))
         {
             throw new FormatException("Given route is in invalid format.");
         }

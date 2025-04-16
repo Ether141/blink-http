@@ -81,12 +81,21 @@ namespace BlinkHttp.Handling
                 return;
             }
 
-            Controller controller = ControllersFactory.Factory.CreateController(route.AssociatedRoute.ControllerType, context);
+            Controller? controller = ControllersFactory.Factory.CreateController(route.AssociatedRoute.ControllerType, context);
+
+            if (controller == null)
+            {
+                logger.Error($"Unable to instantiate controller '{route.AssociatedRoute.ControllerType}'. Check whether all dependenciec can be resolved!");
+                response.StatusCode = (int)HttpStatusCode.InternalServerError;
+                response.ContentLength64 = 0;
+                return;
+            }
+
             IHttpResult? result = endpoint.InvokeEndpoint(controller, args);
 
             if (result == null)
             {
-                logger.Debug("Internal server error.");
+                logger.Error("Internal server error.");
                 response.StatusCode = (int)HttpStatusCode.InternalServerError;
                 response.ContentLength64 = 0;
                 return;
