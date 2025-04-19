@@ -15,7 +15,6 @@ internal class HttpServer
     private readonly GeneralRequestHandler generalHandler;
     private readonly MiddlewareHandler middlewareHandler;
     private readonly IAuthorizer? authorizer;
-    private readonly IConfiguration? configuration;
     private readonly string[] prefixes;
     private readonly ILogger logger = Logger.GetLogger<HttpServer>();
     private readonly string? routePrefix;

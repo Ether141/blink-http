@@ -12,6 +12,9 @@ public class AuthorizationResult
     /// </summary>
     public bool Authorized { get; }
 
+    /// <summary>
+    /// HTTP status code for response.
+    /// </summary>
     public HttpStatusCode HttpCode { get; }
 
     /// <summary>

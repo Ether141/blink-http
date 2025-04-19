@@ -6,6 +6,7 @@
 public static class MimeTypes
 {
     // Text
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
     public const string TextPlain = "text/plain";
     public const string TextHtml = "text/html";
     public const string TextCss = "text/css";
@@ -126,3 +127,4 @@ public static class MimeTypes
         return ExtensionToMimeType.TryGetValue(extension, out string? mimeType) ? mimeType : null;
     }
 }
+#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member

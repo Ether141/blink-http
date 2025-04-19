@@ -7,6 +7,9 @@ namespace BlinkHttp.Authentication.Session;
 /// </summary>
 public sealed class SessionManager : IAuthorizer
 {
+    /// <summary>
+    /// Gets the <seealso cref="IUserInfoProvider"/> used by this instance of <seealso cref="SessionManager"/>.
+    /// </summary>
     public IUserInfoProvider UserInfoProvider => userInfoProvider;
 
     private readonly ISessionStorage sessionStorage;
@@ -27,7 +30,6 @@ public sealed class SessionManager : IAuthorizer
     /// <summary>
     /// Creates new session for given user ID, tracks this newly created session and optionally adds session cookie to the given <seealso cref="HttpListenerResponse"/>.
     /// </summary>
-    /// <param name="response">Response which session cookie will be assigned to.</param>
     public SessionInfo CreateSession(string userId, HttpListenerResponse? response)
     {
         SessionInfo createdSession = CreateNewSession(userId);
