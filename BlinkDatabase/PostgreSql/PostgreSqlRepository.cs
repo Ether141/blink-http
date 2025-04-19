@@ -22,6 +22,7 @@ public class PostgreSqlRepository<T> : IRepository<T> where T : class, new()
 
     private readonly ObjectMapper<T> mapper;
     private readonly NpgsqlConnection connection;
+    private readonly static SemaphoreSlim semaphore = new SemaphoreSlim(1, 1);
 
     /// <summary>
     /// Create new instance of a <seealso cref="PostgreSqlRepository{T}"/> with given connection, and opens this connection if it's not already.
@@ -93,30 +94,57 @@ public class PostgreSqlRepository<T> : IRepository<T> where T : class, new()
 
     private int ExecuteNonQuery(string query)
     {
-        using NpgsqlCommand cmd = new NpgsqlCommand(query, connection);
-        return cmd.ExecuteNonQuery();
+        semaphore.Wait();
+
+        try
+        {
+            using NpgsqlCommand cmd = new NpgsqlCommand(query, connection);
+            return cmd.ExecuteNonQuery();
+        }
+        finally
+        {
+            semaphore.Release();
+        }
     }
 
     private IEnumerable<T> ExecuteSelect(string query)
     {
-        using NpgsqlCommand cmd = new NpgsqlCommand(query, connection);
-        using NpgsqlDataReader reader = cmd.ExecuteReader();
-        List<T> result = [];
-        ReadAllObjects(reader);
+        semaphore.Wait();
 
-        while (CurrentObjects.Count > 0)
+        try
         {
-            result.Add(mapper.Map());
-        }
+            using NpgsqlCommand cmd = new NpgsqlCommand(query, connection);
+            using NpgsqlDataReader reader = cmd.ExecuteReader();
+            List<T> result = [];
+            ReadAllObjects(reader);
 
-        return result;
+            while (CurrentObjects.Count > 0)
+            {
+                result.Add(mapper.Map());
+            }
+
+            return result;
+        }
+        finally
+        {
+            semaphore.Release();
+        }
     }
 
     private void ExecuteSelectNotMap(string query)
     {
-        using NpgsqlCommand cmd = new NpgsqlCommand(query, connection);
-        using NpgsqlDataReader reader = cmd.ExecuteReader();
-        ReadAllObjects(reader);
+        semaphore.Wait();
+
+        try
+        {
+            using NpgsqlCommand cmd = new NpgsqlCommand(query, connection);
+            using NpgsqlDataReader reader = cmd.ExecuteReader();
+            ReadAllObjects(reader);
+        }
+        finally
+        {
+            semaphore.Release();
+        }
     }
 
     private void ReadAllObjects(NpgsqlDataReader reader)
@@ -134,7 +162,7 @@ public class PostgreSqlRepository<T> : IRepository<T> where T : class, new()
                     fields.Add(new FieldFromDatabase(reader.GetName(i), reader.GetFieldType(i), reader.GetValue(i), reader.GetPostgresType(i).Name));
                 }
             }
-            
+
             CurrentObjects.Add(new ObjectFromDatabase(fields));
         }
     }
