@@ -5,6 +5,7 @@ using Logging;
 using BlinkDatabase.General;
 using BlinkHttp.DependencyInjection;
 using BlinkDatabase.PostgreSql;
+using BlinkHttp.Http;
 
 namespace BlinkHttp.Application;
 
@@ -93,6 +94,28 @@ public class WebApplicationBuilder
     public WebApplicationBuilder SetRoutePrefix(string? prefix)
     {
         routePrefix = prefix;
+        return this;
+    }
+
+    /// <summary>
+    /// Adds Cross-Origin Resource Sharing (CORS) support to the application. By default, all headers and origins are accepted.
+    /// </summary>
+    public WebApplicationBuilder AddCORS() => AddCORS(opt => { });
+
+    /// <summary>
+    /// Adds Cross-Origin Resource Sharing (CORS) support to the application, with the specified CORS options.
+    /// </summary>
+    public WebApplicationBuilder AddCORS(Action<CorsOptions> opt)
+    {
+        if (Services.Installator.Middlewares.Any(m => m.GetType() == typeof(CorsMiddleware)))
+        {
+            return this;
+        }
+
+        CorsOptions options = new CorsOptions();
+        opt.Invoke(options);
+        Services.Installator.Middlewares.Insert(0, typeof(CorsMiddleware));
+        Services.Installator.MiddlewareInstances.Insert(0, new CorsMiddleware(options));
         return this;
     }
 
