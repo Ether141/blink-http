@@ -1,4 +1,5 @@
 ﻿using BlinkDatabase.General;
+using BlinkHttp.Handling;
 using System.Reflection;
 
 namespace BlinkHttp.DependencyInjection;
@@ -10,6 +11,9 @@ internal class Installator
 
     internal Dictionary<Type, Type> Scopeds { get; } = [];
     internal List<Type> Repositories { get; } = [];
+
+    internal List<Type> Middlewares { get; } = [];
+    internal List<IMiddleware> MiddlewareInstances { get; } = [];
 
     internal T InstantiateClass<T>() where T : class => (T)InstantiateClass(typeof(T));
 
@@ -79,6 +83,12 @@ internal class Installator
         }
 
         return Activator.CreateInstance(type, args)!;
+    }
+
+    internal MiddlewareHandler ResolveMiddlewareHandler()
+    {
+        IEnumerable<IMiddleware> middlewares = Middlewares.Select(m => MiddlewareInstances.FirstOrDefault(i => i.GetType() == m) ?? InstantiateClass(m)).Cast<IMiddleware>();
+        return new MiddlewareHandler(middlewares);
     }
 
     private bool AreRepositoriesCompatible(Type interfaceType, Type implementationType)

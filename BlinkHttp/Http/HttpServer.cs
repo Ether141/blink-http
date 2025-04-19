@@ -13,6 +13,7 @@ internal class HttpServer
     private readonly HttpListener listener;
     private readonly Router router;
     private readonly GeneralRequestHandler generalHandler;
+    private readonly MiddlewareHandler middlewareHandler;
     private readonly IAuthorizer? authorizer;
     private readonly IConfiguration? configuration;
     private readonly string[] prefixes;
@@ -24,13 +25,14 @@ internal class HttpServer
 
     private readonly CancellationTokenSource cts;
 
-    internal HttpServer(IAuthorizer? authorizer, IConfiguration? configuration, string? routePrefix, params string[] prefixes)
+    internal HttpServer(IAuthorizer? authorizer, IConfiguration? configuration, MiddlewareHandler middlewareHandler, string? routePrefix, params string[] prefixes)
     {
         logger.Debug("Initializing HTTP server...");
 
         listener = new HttpListener();
 
         this.authorizer = authorizer;
+        this.middlewareHandler = middlewareHandler;
         this.prefixes = prefixes;
         this.routePrefix = routePrefix;
 
@@ -97,12 +99,20 @@ internal class HttpServer
 
         logger.Debug($"Received request [{request.HttpMethod}] from {request.LocalEndPoint.Address} - {request.Url}");
 
+        bool middlewareDone = middlewareHandler.Handle(request, response);
         byte[] buffer = [];
 
-        generalHandler.HandleRequest(httpContext, ref buffer);
+        if (middlewareDone)
+        {
+            generalHandler.HandleRequest(httpContext, ref buffer);
+            using Stream output = response.OutputStream;
+            await output.WriteAsync(buffer);
+        }
+        else
+        {
+            logger.Debug("Middleware pipeline was interrupted.");
+        }
 
-        using Stream output = response.OutputStream;
-        await output.WriteAsync(buffer);
         response.Close();
 
         logger.Debug($"Handling request finished with status code: {response.StatusCode}. Response size: {buffer.Length}");

@@ -46,7 +46,8 @@ public class WebApplication
         AppDomain.CurrentDomain.ProcessExit += (_, _) => isServerRunning = false;
 
         ControllersFactory.Initialize(DependencyInjector!);
-        server = new HttpServer(Authorizer, Configuration, RoutePrefix, Prefixes);
+        MiddlewareHandler middlewareHandler = DependencyInjector!.Installator.ResolveMiddlewareHandler();
+        server = new HttpServer(Authorizer, Configuration, middlewareHandler, RoutePrefix, Prefixes);
 
         Task serverTask = server.StartAsync();
 

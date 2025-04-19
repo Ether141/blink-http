@@ -4,9 +4,14 @@ using System.Reflection.Metadata;
 using BlinkDatabase.General;
 using BlinkDatabase.PostgreSql;
 using BlinkHttp.Configuration;
+using BlinkHttp.Handling;
+using BlinkHttp.Http;
 
 namespace BlinkHttp.DependencyInjection;
 
+/// <summary>
+/// Manages and stores services for dependency injections.
+/// </summary>
 public class ServicesContainer
 {
     internal Installator Installator { get; } = new Installator();
@@ -81,6 +86,37 @@ public class ServicesContainer
 
         Installator.Singletons[typeof(IConfiguration)] = typeof(TConfigurationImplementation);
         Installator.SingletonInstances[typeof(TConfigurationImplementation)] = implementation;
+        return this;
+    }
+
+    /// <summary>
+    /// Registers a new middleware to be used in the application pipeline. The middleware will be instantiated later by the middleware handling mechanism.
+    /// </summary>
+    /// <remarks>You can call this method multiple times and add different middleware, which together will create a pipeline and will be executed in the order in which this method was called for them.</remarks>
+    public ServicesContainer UseMiddleware<TMiddlewareImplementation>() where TMiddlewareImplementation : IMiddleware
+    {
+        if (Installator.Middlewares.Contains(typeof(TMiddlewareImplementation)))
+        {
+            return this;
+        }
+
+        Installator.Middlewares.Add(typeof(TMiddlewareImplementation));
+        return this;
+    }
+
+    /// <summary>
+    /// Registers a new middleware to be used in the application pipeline. Given middleware instance will be used throughout the runtime of the application.
+    /// </summary>
+    /// <remarks>You can call this method multiple times and add different middleware, which together will create a pipeline and will be executed in the order in which this method was called for them.</remarks>
+    public ServicesContainer UseMiddleware<TMiddlewareImplementation>(TMiddlewareImplementation implementation) where TMiddlewareImplementation : IMiddleware
+    {
+        if (Installator.Middlewares.Contains(typeof(TMiddlewareImplementation)))
+        {
+            return this;
+        }
+
+        Installator.Middlewares.Add(typeof(TMiddlewareImplementation));
+        Installator.MiddlewareInstances.Add(implementation);
         return this;
     }
 
