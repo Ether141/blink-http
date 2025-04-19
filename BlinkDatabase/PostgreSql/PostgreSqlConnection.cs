@@ -29,6 +29,8 @@ public class PostgreSqlConnection : IDatabaseConnection
     /// </summary>
     public DbConnection? Connection { get; private set; }
 
+    internal SemaphoreSlim Semaphore { get; } = new SemaphoreSlim(1, 1);
+
     /// <summary>
     /// Initializes a new instance of the <see cref="PostgreSqlConnection"/> class with the specified connection parameters.
     /// </summary>

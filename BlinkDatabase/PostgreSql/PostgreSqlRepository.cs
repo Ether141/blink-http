@@ -21,8 +21,7 @@ public class PostgreSqlRepository<T> : IRepository<T> where T : class, new()
     internal List<ObjectFromDatabase> CurrentObjects { get; } = [];
 
     private readonly ObjectMapper<T> mapper;
-    private readonly NpgsqlConnection connection;
-    private readonly static SemaphoreSlim semaphore = new SemaphoreSlim(1, 1);
+    private readonly PostgreSqlConnection connection;
 
     /// <summary>
     /// Create new instance of a <seealso cref="PostgreSqlRepository{T}"/> with given connection, and opens this connection if it's not already.
@@ -35,7 +34,7 @@ public class PostgreSqlRepository<T> : IRepository<T> where T : class, new()
             connection.Connect();
         }
 
-        this.connection = (NpgsqlConnection)connection.Connection!;
+        this.connection = connection;
         Type type = typeof(T);
 
         TableName = type.GetCustomAttribute<TableAttribute>()!.TableName;
@@ -94,26 +93,26 @@ public class PostgreSqlRepository<T> : IRepository<T> where T : class, new()
 
     private int ExecuteNonQuery(string query)
     {
-        semaphore.Wait();
+        connection.Semaphore.Wait();
 
         try
         {
-            using NpgsqlCommand cmd = new NpgsqlCommand(query, connection);
+            using NpgsqlCommand cmd = new NpgsqlCommand(query, (NpgsqlConnection)connection.Connection!);
             return cmd.ExecuteNonQuery();
         }
         finally
         {
-            semaphore.Release();
+            connection.Semaphore.Release();
         }
     }
 
     private IEnumerable<T> ExecuteSelect(string query)
     {
-        semaphore.Wait();
+        connection.Semaphore.Wait();
 
         try
         {
-            using NpgsqlCommand cmd = new NpgsqlCommand(query, connection);
+            using NpgsqlCommand cmd = new NpgsqlCommand(query, (NpgsqlConnection)connection.Connection!);
             using NpgsqlDataReader reader = cmd.ExecuteReader();
             List<T> result = [];
             ReadAllObjects(reader);
@@ -127,23 +126,23 @@ public class PostgreSqlRepository<T> : IRepository<T> where T : class, new()
         }
         finally
         {
-            semaphore.Release();
+            connection.Semaphore.Release();
         }
     }
 
     private void ExecuteSelectNotMap(string query)
     {
-        semaphore.Wait();
+        connection.Semaphore.Wait();
 
         try
         {
-            using NpgsqlCommand cmd = new NpgsqlCommand(query, connection);
+            using NpgsqlCommand cmd = new NpgsqlCommand(query, (NpgsqlConnection)connection.Connection!);
             using NpgsqlDataReader reader = cmd.ExecuteReader();
             ReadAllObjects(reader);
         }
         finally
         {
-            semaphore.Release();
+            connection.Semaphore.Release();
         }
     }
 
