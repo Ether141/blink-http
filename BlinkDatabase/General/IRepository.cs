@@ -36,7 +36,7 @@ public interface IRepository<T> where T : class, new()
     /// <summary>
     /// Inserts given entity to the database table. Returns number of inserted entities - 0 or 1.
     /// </summary>
-    int Insert(T obj);
+    void Insert(T obj);
 
     /// <summary>
     /// Updates given entity, based on its ID property (property marked with <seealso cref="BlinkDatabase.Annotations.IdAttribute"/>). Returns number of updated entities - 0 or 1.

@@ -73,10 +73,17 @@ public class PostgreSqlRepository<T> : IRepository<T> where T : class, new()
         return CurrentObjects.Count == 1;
     }
 
-    public int Insert(T obj)
+    public void Insert(T obj)
     {
         string query = SqlInsertBuilder.Insert(obj);
-        return ExecuteNonQuery(query);
+        object? id = ExecuteScalar(query);
+
+        if (id != null)
+        {
+            ObjectProperty idProp = ObjectProperty.GetIdProperty(typeof(T));
+            id = Convert.ChangeType(id, idProp.StoredType);
+            idProp.Set(obj, id);
+        }
     }
 
     public int Update(T obj)
@@ -99,6 +106,21 @@ public class PostgreSqlRepository<T> : IRepository<T> where T : class, new()
         {
             using NpgsqlCommand cmd = new NpgsqlCommand(query, (NpgsqlConnection)connection.Connection!);
             return cmd.ExecuteNonQuery();
+        }
+        finally
+        {
+            connection.Semaphore.Release();
+        }
+    }
+
+    private object? ExecuteScalar(string query)
+    {
+        connection.Semaphore.Wait();
+
+        try
+        {
+            using NpgsqlCommand cmd = new NpgsqlCommand(query, (NpgsqlConnection)connection.Connection!);
+            return cmd.ExecuteScalar();
         }
         finally
         {

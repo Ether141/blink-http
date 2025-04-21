@@ -8,6 +8,7 @@ internal static class SqlInsertBuilder
     internal static string Insert<T>(T obj) where T : class, new()
     {
         ObjectProperty[] properties = [.. ObjectProperty.GetProperties<T>().Where(p => !p.IsId)];
+        string idColumnName = ObjectProperty.GetProperties<T>().First(p => p.IsId).FullName;
         string tableName = TableAttribute.GetTableName<T>();
         string valueNames = "";
         string values = "";
@@ -32,7 +33,7 @@ internal static class SqlInsertBuilder
             values += $"{relationId}, ";
         }
 
-        string query = $"INSERT INTO \"{tableName}\" ({valueNames[..^2]}) VALUES ({values[..^2]})";
+        string query = $"INSERT INTO \"{tableName}\" ({valueNames[..^2]}) VALUES ({values[..^2]}) RETURNING {idColumnName}";
         return query;
     }
 }
