@@ -68,19 +68,20 @@ public class Logger : ILogger
         return value;
     }
 
-    public void Debug(string message) => CallAllLoggers(message, LogLevel.Debug);
+    public void Debug(object? message) => CallAllLoggers(message, LogLevel.Debug);
 
-    public void Info(string message) => CallAllLoggers(message, LogLevel.Info);
+    public void Info(object? message) => CallAllLoggers(message, LogLevel.Info);
 
-    public void Warning(string message) => CallAllLoggers(message, LogLevel.Warning);
+    public void Warning(object? message) => CallAllLoggers(message, LogLevel.Warning);
 
-    public void Error(string message) => CallAllLoggers(message, LogLevel.Error);
+    public void Error(object? message) => CallAllLoggers(message, LogLevel.Error);
 
-    public void Critical(string message) => CallAllLoggers(message, LogLevel.Critical);
+    public void Critical(object? message) => CallAllLoggers(message, LogLevel.Critical);
 
-    private void CallAllLoggers(string message, LogLevel level)
+    private void CallAllLoggers(object? message, LogLevel level)
     {
-        LogMessage msg = new LogMessage(message, level, name);
+        string text = message is string ? (string)message : (message == null ? string.Empty : message.ToString() ?? string.Empty);
+        LogMessage msg = new LogMessage(text, level, name);
 
         foreach (IGeneralLogger logger in loggers)
         {
