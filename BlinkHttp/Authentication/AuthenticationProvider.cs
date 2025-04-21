@@ -36,13 +36,11 @@ public class AuthenticationProvider : IAuthenticationProvider
 
         string hashedPassword = userInfoProvider.GetHashedPassword(obtainedUser.Id)!;
 
-        if (!ValidatePassword(hashedPassword, password))
+        if (PasswordHasher.VerifyPassword(password, hashedPassword))
         {
             return CredentialsValidationResult.PasswordIsWrong;
         }
 
         return CredentialsValidationResult.Success;
     }
-
-    internal static bool ValidatePassword(string hashedPassword, string plainPassword) => hashedPassword == plainPassword;
 }
