@@ -29,7 +29,7 @@ internal class ControllersFactory
 
         controller.Request = context.Request;
         controller.Response = context.Response;
-        context.User = context.User;
+        controller.User = context.User;
 
         return controller;
     }
