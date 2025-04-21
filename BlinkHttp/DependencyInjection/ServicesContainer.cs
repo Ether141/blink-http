@@ -142,16 +142,18 @@ public class ServicesContainer
     public ServicesContainer AddPostgreSql()
     {
         IConfiguration configuration = Installator.GetSingletonByService<IConfiguration>();
-        AddPostgreSql(configuration.Get("sql:hostname")!, configuration.Get("sql:username")!, configuration.Get("sql:password")!, configuration.Get("sql:database")!);
+        bool loggingOn = configuration["sql:logging_on"] != null ? configuration.Get<bool>("sql:logging_on") : false;
+        AddPostgreSql(configuration.Get("sql:hostname")!, configuration.Get("sql:username")!, configuration.Get("sql:password")!, configuration.Get("sql:database")!, loggingOn);
         return this;
     }
 
     /// <summary>
     /// Adds new <seealso cref="PostgreSqlConnection"/> as singleton, which will be used for handling database operations and supplying new <seealso cref="IRepository{T}"/>.
     /// </summary>
-    public ServicesContainer AddPostgreSql(string hostname, string username, string password, string database)
+    public ServicesContainer AddPostgreSql(string hostname, string username, string password, string database, bool loggingOn)
     {
         PostgreSqlConnection conn = new PostgreSqlConnection(hostname, username, password, database);
+        conn.SqlQueriesLogging = loggingOn;
         AddSingleton<IDatabaseConnection, PostgreSqlConnection>(conn);
         return this;
     }

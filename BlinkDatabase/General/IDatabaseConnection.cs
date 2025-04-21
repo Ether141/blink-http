@@ -9,6 +9,8 @@ public interface IDatabaseConnection : IDisposable
 {
     bool IsConnected { get; }
     string? ConnectionString { get; }
+    bool SqlQueriesLogging { get; set; }
+
     DbConnection? Connection { get; }
     DbConnection Connect();
 }

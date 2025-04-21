@@ -104,7 +104,7 @@ public class PostgreSqlRepository<T> : IRepository<T> where T : class, new()
 
         try
         {
-            using NpgsqlCommand cmd = new NpgsqlCommand(query, (NpgsqlConnection)connection.Connection!);
+            using NpgsqlCommand cmd = GetCommand(query);
             return cmd.ExecuteNonQuery();
         }
         finally
@@ -119,7 +119,7 @@ public class PostgreSqlRepository<T> : IRepository<T> where T : class, new()
 
         try
         {
-            using NpgsqlCommand cmd = new NpgsqlCommand(query, (NpgsqlConnection)connection.Connection!);
+            using NpgsqlCommand cmd = GetCommand(query);
             return cmd.ExecuteScalar();
         }
         finally
@@ -134,7 +134,7 @@ public class PostgreSqlRepository<T> : IRepository<T> where T : class, new()
 
         try
         {
-            using NpgsqlCommand cmd = new NpgsqlCommand(query, (NpgsqlConnection)connection.Connection!);
+            using NpgsqlCommand cmd = GetCommand(query);
             using NpgsqlDataReader reader = cmd.ExecuteReader();
             List<T> result = [];
             ReadAllObjects(reader);
@@ -158,7 +158,7 @@ public class PostgreSqlRepository<T> : IRepository<T> where T : class, new()
 
         try
         {
-            using NpgsqlCommand cmd = new NpgsqlCommand(query, (NpgsqlConnection)connection.Connection!);
+            using NpgsqlCommand cmd = GetCommand(query);
             using NpgsqlDataReader reader = cmd.ExecuteReader();
             ReadAllObjects(reader);
         }
@@ -186,5 +186,11 @@ public class PostgreSqlRepository<T> : IRepository<T> where T : class, new()
 
             CurrentObjects.Add(new ObjectFromDatabase(fields));
         }
+    }
+
+    private NpgsqlCommand GetCommand(string query)
+    {
+        connection.LogSqlQuery(query);
+        return new NpgsqlCommand(query, (NpgsqlConnection)connection.Connection!);
     }
 }

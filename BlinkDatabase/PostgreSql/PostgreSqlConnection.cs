@@ -1,4 +1,5 @@
 ﻿using BlinkDatabase.General;
+using Logging;
 using Npgsql;
 using System.Data.Common;
 
@@ -14,6 +15,8 @@ public class PostgreSqlConnection : IDatabaseConnection
     private readonly string? password;
     private readonly string? database;
 
+    private readonly ILogger logger = Logger.GetLogger<PostgreSqlConnection>();
+
     /// <summary>
     /// Gets a value indicating whether the connection to the database is established.
     /// </summary>
@@ -23,6 +26,11 @@ public class PostgreSqlConnection : IDatabaseConnection
     /// Gets the connection string used to connect to the database.
     /// </summary>
     public string? ConnectionString { get; }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether SQL queries executed on the connection should be logged.
+    /// </summary>
+    public bool SqlQueriesLogging { get; set; }
 
     /// <summary>
     /// Gets the database connection object.
@@ -84,5 +92,15 @@ public class PostgreSqlConnection : IDatabaseConnection
             Connection.Close();
             Connection = null;
         }
+    }
+
+    internal void LogSqlQuery(string query)
+    {
+        if (!IsConnected || !SqlQueriesLogging)
+        {
+            return;
+        }
+
+        logger.Debug(query);
     }
 }
