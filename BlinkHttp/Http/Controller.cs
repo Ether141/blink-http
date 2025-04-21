@@ -26,42 +26,42 @@ public abstract class Controller
     /// <summary>
     /// Returns <seealso cref="IHttpResult"/> with HTTP code 200 OK, and JSON object with status code and appropriate message.
     /// </summary>
-    protected IHttpResult Ok() => JsonResult.FromObject(JsonContent(200, "OK"));
+    protected IHttpResult Ok() => JsonResult.FromObject(JsonContent(200, "OK"), HttpStatusCode.OK);
 
     /// <summary>
     /// Returns <seealso cref="IHttpResult"/> with HTTP code 201 Created, and JSON object with status code and appropriate message.
     /// </summary>
-    protected IHttpResult Created() => JsonResult.FromObject(JsonContent(201, "Created"));
+    protected IHttpResult Created() => JsonResult.FromObject(JsonContent(201, "Created"), HttpStatusCode.Created);
 
     /// <summary>
     /// Returns <seealso cref="IHttpResult"/> with HTTP code 404 Not Found, and JSON object with status code and appropriate message.
     /// </summary>
-    protected IHttpResult NotFound() => JsonResult.FromObject(JsonContent(404, "Requested resource cannot be found."));
+    protected IHttpResult NotFound() => JsonResult.FromObject(JsonContent(404, "Requested resource cannot be found."), HttpStatusCode.NotFound);
 
     /// <summary>
     /// Returns <seealso cref="IHttpResult"/> with HTTP code 400 Bad Request, and JSON object with status code and appropriate message.
     /// </summary>
-    protected IHttpResult BadRequest() => JsonResult.FromObject(JsonContent(400, "Bad request."));
+    protected IHttpResult BadRequest() => JsonResult.FromObject(JsonContent(400, "Bad request."), HttpStatusCode.BadRequest);
 
     /// <summary>
     /// Returns <seealso cref="IHttpResult"/> with HTTP code 401 Unauthorized, and JSON object with status code and appropriate message.
     /// </summary>
-    protected IHttpResult Unauthorized() => JsonResult.FromObject(JsonContent(401, "Unauthorized"));
+    protected IHttpResult Unauthorized() => JsonResult.FromObject(JsonContent(401, "Unauthorized"), HttpStatusCode.Unauthorized);
 
     /// <summary>
     /// Returns <seealso cref="IHttpResult"/> with HTTP code 403 Forbidden, and JSON object with status code and appropriate message.
     /// </summary>
-    protected IHttpResult Forbidden() => JsonResult.FromObject(JsonContent(403, "Forbidden"));
+    protected IHttpResult Forbidden() => JsonResult.FromObject(JsonContent(403, "Forbidden"), HttpStatusCode.Forbidden);
 
     /// <summary>
     /// Returns <seealso cref="IHttpResult"/> with HTTP code 409 Conflict, and JSON object with status code and appropriate message.
     /// </summary>
-    protected IHttpResult Conflict() => JsonResult.FromObject(JsonContent(409, "Conflict encountered."));
+    protected IHttpResult Conflict() => JsonResult.FromObject(JsonContent(409, "Conflict encountered."), HttpStatusCode.Conflict);
 
     /// <summary>
     /// Returns <seealso cref="IHttpResult"/> with HTTP code 500 Internal Server Error, and JSON object with status code and appropriate message.
     /// </summary>
-    protected IHttpResult InternalServerError() => JsonResult.FromObject(JsonContent(500, "Internal Server Error."));
+    protected IHttpResult InternalServerError() => JsonResult.FromObject(JsonContent(500, "Internal Server Error."), HttpStatusCode.InternalServerError);
 
     private static object JsonContent(int status, string message) => new { status, message };
 }
