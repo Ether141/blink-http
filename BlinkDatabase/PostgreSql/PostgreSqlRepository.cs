@@ -149,7 +149,7 @@ public class PostgreSqlRepository<T> : IRepository<T> where T : class, new()
     private void ReadAllObjects(NpgsqlDataReader reader)
     {
         CurrentObjects.Clear();
-
+        
         while (reader.Read())
         {
             List<FieldFromDatabase> fields = [];

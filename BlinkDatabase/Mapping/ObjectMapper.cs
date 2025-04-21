@@ -22,7 +22,7 @@ internal class ObjectMapper<T> where T : class, new()
         return result;
     }
 
-    private object MapInternal(Type type, ObjectFromDatabase objectFromDatabase, Type? relationTypeToIgnore = null)
+    private object? MapInternal(Type type, ObjectFromDatabase objectFromDatabase, Type? relationTypeToIgnore = null)
     {
         ObjectProperty[] properties = ObjectProperty.GetProperties(type);
         object obj = Activator.CreateInstance(type)!;
@@ -54,7 +54,7 @@ internal class ObjectMapper<T> where T : class, new()
 
                 if (prop.RelationType == RelationType.OneToMany)
                 {
-                    HandleOneToMany(type, prop, obj, objectFromDatabase, fieldFromDb);
+                    HandleOneToMany(type, prop, obj, fieldFromDb);
                     continue;
                 }
 
@@ -64,26 +64,35 @@ internal class ObjectMapper<T> where T : class, new()
             }
 
             value = fieldFromDb.Value;
+
+            if (prop.IsId && fieldFromDb.Value.GetType() == typeof(DBNull))
+            {
+                return null;
+            }
+
             prop.Set(obj, value);
         }
 
         return obj;
     }
 
-    private T MapInternal(ObjectFromDatabase objectFromDatabases) => (T)MapInternal(typeof(T), objectFromDatabases);
+    private T MapInternal(ObjectFromDatabase objectFromDatabases) => (T)MapInternal(typeof(T), objectFromDatabases)!;
 
-    private void HandleOneToMany(Type type, ObjectProperty prop, object obj, ObjectFromDatabase? objectFromDatabase, FieldFromDatabase fieldFromDb)
+    private void HandleOneToMany(Type type, ObjectProperty prop, object obj, FieldFromDatabase fieldFromDb)
     {
         Type constructedListType = typeof(List<>).MakeGenericType(prop.StoredType);
         System.Collections.IList objectsFromRelation = (System.Collections.IList)Activator.CreateInstance(constructedListType)!;
 
-        ObjectFromDatabase? objFromDb = objectFromDatabase;
         List<ObjectFromDatabase> db = [.. repo.CurrentObjects.Where(o => o.Fields.Any(f => f.FullName == prop.FullName && f.Value.ToString() == fieldFromDb.Value.ToString()))];
 
         foreach (ObjectFromDatabase objForRelation in db)
         {
-            object o = MapInternal(prop.StoredType, objForRelation, type);
-            objectsFromRelation.Add(o);
+            object? o = MapInternal(prop.StoredType, objForRelation, type);
+
+            if (o != null)
+            {
+                objectsFromRelation.Add(o); 
+            }
         }
 
         foreach (object? objFromRelation in objectsFromRelation)

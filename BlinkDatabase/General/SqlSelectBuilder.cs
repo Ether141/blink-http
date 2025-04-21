@@ -26,11 +26,11 @@ internal class SqlSelectBuilder
     internal static string SelectInternal<T>(string? whereQuery) where T : class, new()
     {
         string tableName = TableAttribute.GetTableName<T>();
-        (string? innerJoin, string? innerJoinValues) = SqlInnerJoinBuilder.InnerJoin<T>();
+        (string? leftJoin, string? leftJoinValues) = SqlLeftJoinBuilder.LeftJoin<T>();
 
-        if (innerJoin != null)
+        if (leftJoin != null)
         {
-            innerJoin = " " + innerJoin;
+            leftJoin = " " + leftJoin;
         }
 
         if (whereQuery != null)
@@ -47,9 +47,9 @@ internal class SqlSelectBuilder
             columnNames += $"\"{tableName}\".\"{prop.ColumnName}\" AS \"{tableName}.{prop.ColumnName}\", ";
         }
 
-        if (innerJoinValues != null)
+        if (leftJoinValues != null)
         {
-            columnNames += innerJoinValues;
+            columnNames += leftJoinValues;
         }
         else
         {
@@ -58,6 +58,6 @@ internal class SqlSelectBuilder
 
         ObjectProperty idProperty = properties.First(p => p.IsId);
 
-        return $"SELECT {columnNames} FROM \"{tableName}\"" + (innerJoin ?? "") + (whereQuery ?? "");
+        return $"SELECT {columnNames} FROM \"{tableName}\"" + (leftJoin ?? "") + (whereQuery ?? "");
     }
 }

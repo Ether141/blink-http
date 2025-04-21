@@ -4,21 +4,21 @@ using System.Reflection;
 
 namespace BlinkDatabase.General;
 
-internal static class SqlInnerJoinBuilder
+internal static class SqlLeftJoinBuilder
 {
-    internal static (string?, string?) InnerJoin<T>() where T : class, new() => InnerJoin(typeof(T));
+    internal static (string?, string?) LeftJoin<T>() where T : class, new() => LeftJoin(typeof(T));
 
-    internal static (string?, string?) InnerJoin(Type type, Type? exceptType = null)
+    internal static (string?, string?) LeftJoin(Type type, Type? exceptType = null)
     {
         string tableName = type.GetCustomAttribute<TableAttribute>()!.TableName;
         ObjectProperty[] relationProperties = [.. ObjectProperty.GetProperties(type).Where(p => p.IsRelation)];
 
-        string? innerJoin = null;
+        string? leftJoin = null;
         string? fieldNames = null;
 
         if (relationProperties.Length > 0)
         {
-            innerJoin = "";
+            leftJoin = "";
             fieldNames = "";
 
             foreach (ObjectProperty relationProperty in relationProperties)
@@ -28,7 +28,7 @@ internal static class SqlInnerJoinBuilder
                     continue;
                 }
 
-                innerJoin += $"INNER JOIN \"{relationProperty.RelationTableName}\" ON \"{tableName}\".\"{relationProperty.ColumnName}\" = \"{relationProperty.RelationTableName}\".\"{relationProperty.RelationColumnName}\"";
+                leftJoin += $"LEFT JOIN \"{relationProperty.RelationTableName}\" ON \"{tableName}\".\"{relationProperty.ColumnName}\" = \"{relationProperty.RelationTableName}\".\"{relationProperty.RelationColumnName}\"";
 
                 ObjectProperty[] properties = ObjectProperty.GetProperties(relationProperty.StoredType);
 
@@ -39,16 +39,16 @@ internal static class SqlInnerJoinBuilder
 
                 fieldNames = fieldNames[..^2];
 
-                (string? nextInnerJoin, string? nextFieldNames) = InnerJoin(relationProperty.StoredType, type);
+                (string? nextLeftJoin, string? nextFieldNames) = LeftJoin(relationProperty.StoredType, type);
 
-                if (innerJoin != null)
+                if (leftJoin != null)
                 {
-                    innerJoin += " " + nextInnerJoin;
+                    leftJoin += " " + nextLeftJoin;
                     fieldNames += ", " + nextFieldNames;
                 }
             }
         }
 
-        return (innerJoin, fieldNames?.Trim().Trim(','));
+        return (leftJoin, fieldNames?.Trim().Trim(','));
     }
 }
