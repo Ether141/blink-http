@@ -10,7 +10,7 @@ internal class Installator
     internal Dictionary<Type, object> SingletonInstances { get; } = [];
 
     internal Dictionary<Type, Type> Scopeds { get; } = [];
-    internal List<Type> Repositories { get; } = [];
+    internal Type? RepositoryType { get; set; }
 
     internal List<Type> Middlewares { get; } = [];
     internal List<IMiddleware> MiddlewareInstances { get; } = [];
@@ -35,7 +35,7 @@ internal class Installator
         foreach (ConstructorInfo constructor in constructors)
         {
             parameters = constructor.GetParameters();
-            int thisMatchedParamsNum = parameters.Where(parameter => Singletons.Any(s => s.Key == parameter.ParameterType) || Scopeds.Any(s => s.Key == parameter.ParameterType) || Repositories.Any(r => AreRepositoriesCompatible(parameter.ParameterType, r))).Count();
+            int thisMatchedParamsNum = parameters.Where(parameter => Singletons.Any(s => s.Key == parameter.ParameterType) || Scopeds.Any(s => s.Key == parameter.ParameterType) || IsRepository(parameter.ParameterType)).Count();
 
             if (thisMatchedParamsNum > matchedParamsNum)
             {
@@ -54,6 +54,13 @@ internal class Installator
         for (int i = 0; i < parameters.Length; i++)
         {
             ParameterInfo parameter = parameters[i];
+
+            if (IsRepository(parameter.ParameterType))
+            {
+                args[i] = GetRepository(parameter.ParameterType);
+                continue;
+            }
+
             Type? implementationType = Singletons.FirstOrDefault(s => s.Key == parameter.ParameterType).Value;
 
             if (implementationType != null && implementationType == type)
@@ -69,11 +76,6 @@ internal class Installator
                 {
                     args[i] = GetScoped(implementationType);
                 }
-                else
-                {
-                    implementationType = Repositories.FirstOrDefault(r => AreRepositoriesCompatible(parameter.ParameterType, r));
-                    args[i] = implementationType != null ? GetRepository(implementationType) : null;
-                }
 
                 continue;
             }
@@ -85,24 +87,8 @@ internal class Installator
         return Activator.CreateInstance(type, args)!;
     }
 
-    internal MiddlewareHandler ResolveMiddlewareHandler()
-    {
-        IEnumerable<IMiddleware> middlewares = Middlewares.Select(m => MiddlewareInstances.FirstOrDefault(i => i.GetType() == m) ?? InstantiateClass(m)).Cast<IMiddleware>();
-        return new MiddlewareHandler(middlewares);
-    }
-
-    private bool AreRepositoriesCompatible(Type interfaceType, Type implementationType)
-    {
-        if (!interfaceType.IsGenericType || interfaceType.GetGenericTypeDefinition() != typeof(IRepository<>))
-        {
-            return false;
-        }
-
-        Type interfaceGenericType = interfaceType.GetGenericArguments().First();
-        IEnumerable<Type> implementedInterfaces = implementationType.GetInterfaces().Where(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IRepository<>));
-
-        return implementedInterfaces.Any(i => i.GetGenericArguments().First() == interfaceGenericType);
-    }
+    internal MiddlewareHandler ResolveMiddlewareHandler() =>
+        new MiddlewareHandler(Middlewares.Select(m => MiddlewareInstances.FirstOrDefault(i => i.GetType() == m) ?? InstantiateClass(m)).Cast<IMiddleware>());
 
     private object GetSingleton(Type implementationType)
     {
@@ -118,5 +104,18 @@ internal class Installator
 
     private object GetScoped(Type implementationType) => InstantiateClass(implementationType);
 
-    private object GetRepository(Type implementationType) => Activator.CreateInstance(implementationType, GetSingleton(Singletons[typeof(IDatabaseConnection)]))!;
+    private object GetRepository(Type type)
+    {
+        if (RepositoryType == null)
+        {
+            throw new InvalidOperationException("Cannot instantiate new repository, because WebApplication does not have turned on support of any database.");
+        }
+
+        Type modelType = type.GetGenericArguments()[0];
+        Type repositoryType = RepositoryType.MakeGenericType(modelType);
+
+        return Activator.CreateInstance(repositoryType, GetSingleton(Singletons[typeof(IDatabaseConnection)]))!;
+    }
+
+    private bool IsRepository(Type type) => type.IsGenericType && type.GetGenericTypeDefinition() == typeof(IRepository<>);
 }

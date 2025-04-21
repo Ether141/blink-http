@@ -121,21 +121,6 @@ public class ServicesContainer
     }
 
     /// <summary>
-    /// Adds new repository to the services that will be later used to resolve dependencies. A repository will be created for every newly instantiated controller and <seealso cref="IDatabaseConnection"/> from Installator.Singletons container will be used.
-    /// </summary>
-    /// <remarks>Note: When you add a repository, firstly you also need to add database connection using the appropriate method.</remarks>
-    public ServicesContainer AddRepository<TRepositoryImplementation>() where TRepositoryImplementation : class
-    {
-        if (Installator.Repositories.Contains(typeof(TRepositoryImplementation)))
-        {
-            return this;
-        }
-
-        Installator.Repositories.Add(typeof(TRepositoryImplementation));
-        return this;
-    }
-
-    /// <summary>
     /// Adds new <seealso cref="PostgreSqlConnection"/> as singleton, which will be used for handling database operations and supplying new <seealso cref="IRepository{T}"/>.
     /// </summary>
     /// <remarks>Note: When you add a database connection using this method, firstly you also need to add <seealso cref="IConfiguration"/> using the AddConfiguration method.</remarks>
@@ -155,6 +140,7 @@ public class ServicesContainer
         PostgreSqlConnection conn = new PostgreSqlConnection(hostname, username, password, database);
         conn.SqlQueriesLogging = loggingOn;
         AddSingleton<IDatabaseConnection, PostgreSqlConnection>(conn);
+        Installator.RepositoryType = typeof(PostgreSqlRepository<>);
         return this;
     }
 }
