@@ -36,7 +36,7 @@ public class AuthenticationProvider : IAuthenticationProvider
 
         string hashedPassword = userInfoProvider.GetHashedPassword(obtainedUser.Id)!;
 
-        if (PasswordHasher.VerifyPassword(password, hashedPassword))
+        if (!PasswordHasher.VerifyPassword(password, hashedPassword))
         {
             return CredentialsValidationResult.PasswordIsWrong;
         }
