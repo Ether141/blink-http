@@ -33,7 +33,7 @@ internal static class SqlInsertBuilder
             values += $"{relationId}, ";
         }
 
-        string query = $"INSERT INTO \"{tableName}\" ({valueNames[..^2]}) VALUES ({values[..^2]}) RETURNING {idColumnName}";
+        string query = $"INSERT INTO \"{tableName}\" ({valueNames[..^2]}) VALUES ({values[..^2]}) RETURNING \"{idColumnName}\"";
         return query;
     }
 }
