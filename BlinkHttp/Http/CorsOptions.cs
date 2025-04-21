@@ -16,4 +16,10 @@ public class CorsOptions
     /// Default value is "*" which permits all headers.
     /// </summary>
     public string Headers { get; set; } = "*";
+
+    /// <summary>
+    /// Gets or sets a value indicating whether credentials are supported in CORS requests.
+    /// Default value is <c>false</c>, which means credentials are not included.
+    /// </summary>
+    public bool Credentials { get; set; } = false;
 }
