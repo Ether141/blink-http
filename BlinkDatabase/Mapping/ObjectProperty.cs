@@ -33,21 +33,26 @@ internal class ObjectProperty
     internal string GetAsSqlString(object obj)
     {
         object? value = Get(obj);
+        Type type = value!.GetType();
 
         if (value == null)
         {
             return "NULL";
         }
-        else if (value.GetType() == typeof(string))
+        else if (type == typeof(string))
         {
             string val = ((string)value).Replace("'", "''");
             return $"'{val}'";
         }
-        else if (value.GetType().IsEnum)
+        else if (type == typeof(float) || type == typeof(double) || type == typeof(decimal))
         {
-            return $"'{EnumValueAttribute.GetEnumValueName(value.GetType(), value)}'";
+            return value.ToString()!.Replace(',', '.');
         }
-        else if (value.GetType() == typeof(DateTime))
+        else if (type.IsEnum)
+        {
+            return $"'{EnumValueAttribute.GetEnumValueName(type, value)}'";
+        }
+        else if (type == typeof(DateTime))
         {
             DateTime dateTime = (DateTime)value;
 
