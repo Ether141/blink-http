@@ -17,7 +17,8 @@ internal class CorsMiddleware : IMiddleware
         response.AddHeader("Access-Control-Allow-Origin", options.Origin);
         response.AddHeader("Access-Control-Allow-Headers", options.Headers);
         response.AddHeader("Access-Control-Allow-Credentials", options.Credentials.ToString().ToLower());
-        
+        response.AddHeader("Access-Control-Allow-Methods", options.Methods);
+
         if (request.HttpMethod.Equals("options", StringComparison.OrdinalIgnoreCase) && request.Headers["Origin"] != null && request.Headers["Access-Control-Request-Method"] != null)
         {
             response.StatusCode = (int)HttpStatusCode.OK;

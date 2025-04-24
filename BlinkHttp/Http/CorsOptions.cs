@@ -22,4 +22,10 @@ public class CorsOptions
     /// Default value is <c>false</c>, which means credentials are not included.
     /// </summary>
     public bool Credentials { get; set; } = false;
+
+    /// <summary>
+    /// Gets or sets the allowed HTTP methods in CORS requests.
+    /// Default value is "*" which permits all methods.
+    /// </summary>
+    public string Methods { get; set; } = "*";
 }
