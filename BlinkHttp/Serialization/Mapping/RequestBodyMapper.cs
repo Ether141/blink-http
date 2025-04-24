@@ -44,6 +44,11 @@ internal class RequestBodyMapper
             return GetDouble(parameterName);
         }
 
+        if (type == typeof(decimal))
+        {
+            return GetDecimal(parameterName);
+        }
+
         if (type == typeof(bool))
         {
             return GetBool(parameterName);
@@ -188,6 +193,22 @@ internal class RequestBodyMapper
         }
 
         return double.TryParse(matchedValue.Values![0], CultureHelper.DefaultNumberFormat, out double result) ? result : null;
+    }
+
+    private object? GetDecimal(string parameterName)
+    {
+        RequestValue? matchedValue = GetValue(parameterName, false);
+
+        if (matchedValue != null)
+        {
+            availableValues.Remove(matchedValue);
+        }
+        else
+        {
+            return null;
+        }
+
+        return decimal.TryParse(matchedValue.Values![0], CultureHelper.DefaultNumberFormat, out decimal result) ? result : null;
     }
 
     private object? GetBool(string parameterName)
