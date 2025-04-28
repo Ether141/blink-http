@@ -1,9 +1,8 @@
-﻿using BlinkDatabase;
-using BlinkDatabase.PostgreSql;
+﻿using BlinkDatabase.PostgreSql;
 using BlinkHttp.Application;
 using BlinkHttp.Authentication;
 using BlinkHttp.Configuration;
-using Logging;
+using BlinkHttp.DependencyInjection;
 
 namespace MyApplication;
 
@@ -53,13 +52,13 @@ internal class Program
         builder.Services
             .AddConfiguration(config)
             .AddPostgreSql()
-            .AddRepository<PostgreSqlRepository<Book>>()
-            .AddRepository<PostgreSqlRepository<User>>()
+            .AddSingleton<IFilesProvider, FilesProvider>()
             .AddSingleton<IUserInfoProvider, UserInfoProvider>();
 
         builder
             .ConfigureLogging(s => s.UseConsole())
             .UseConfiguration()
+            .AddCORS()
             .SetRoutePrefix(config["route_prefix"])
             .UseSessionAuthorization(opt => opt.EnableSessionExpiration(TimeSpan.FromHours(12)));
 
