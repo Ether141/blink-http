@@ -24,12 +24,25 @@ namespace BlinkHttp.Handling
         public override void HandleRequest(ControllerContext context, ref byte[] buffer)
         {
             HttpListenerResponse response = context.Response!;
+            Http.HttpMethod httpMethod;
+
+            try
+            {
+                httpMethod = HttpMethodExtension.Parse(context.Request.HttpMethod);
+            }
+            catch
+            {
+                response.StatusCode = (int)HttpStatusCode.MethodNotAllowed;
+                response.ContentLength64 = 0;
+                return;
+            }
+
             string path = context.Request!.Url!.PathAndQuery;
-            Route? route = router.GetRoute(path);
+            Route? route = router.GetRoute(path, httpMethod);
 
             if (route == null)
             {
-                response.StatusCode = (int)HttpStatusCode.NotFound;
+                response.StatusCode = router.RouteExistsForAnyMethod(path) ? (int)HttpStatusCode.MethodNotAllowed : (int)HttpStatusCode.NotFound;
                 response.ContentLength64 = 0;
                 return;
             }

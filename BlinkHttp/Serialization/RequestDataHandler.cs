@@ -29,12 +29,12 @@ internal static class RequestDataHandler
 
     private static object?[]? GetArgumentsFromUrl(Route route, string path)
     {
-        UrlParameter[]? urlParameters = GetRequestParameters.GetUrlParameters(route.Path, path);
+        UrlParameter[]? urlParameters = GetRequestParameters.GetUrlParameters(route.PathWithQuery, path);
         IEndpoint endpoint = route.Endpoint;
 
-        if (endpoint.Method.MethodHasParameters)
+        if (endpoint.MethodHasParameters)
         {
-            return GetRequestParameters.ExtractArguments(urlParameters, endpoint.Method.MethodInfo);
+            return GetRequestParameters.ExtractArguments(urlParameters, endpoint.MethodInfo);
         }
         else if (route.HasRouteParameters)
         {
@@ -46,7 +46,7 @@ internal static class RequestDataHandler
 
     private static object?[]? GetArgumentsFromBody(Route route, HttpListenerRequest request)
     {
-        MethodInfo methodInfo = route.Endpoint.Method.MethodInfo;
+        MethodInfo methodInfo = route.Endpoint.MethodInfo;
 
         if (RequestBodyParser.GetFromFormParameters(methodInfo).Length == 0)
         {

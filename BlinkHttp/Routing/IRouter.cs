@@ -7,5 +7,5 @@ internal interface IRouter
     RouterOptions? Options { get; }
 
     void InitializeAllRoutes();
-    Route? GetRoute(string url);
+    Route? GetRoute(string url, Http.HttpMethod httpMethod);
 }

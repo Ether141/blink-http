@@ -26,6 +26,6 @@ public abstract class HttpAttribute : Attribute
         this.route = route;
     }
 
-    internal string GetRouteValue(MethodInfo methodInfo) 
-        => route ?? (methodInfo.Name.Equals("index", StringComparison.OrdinalIgnoreCase) ? string.Empty : methodInfo.Name.ToLowerInvariant());
+    internal string GetRouteValue(MethodInfo methodInfo)
+        => route ?? string.Empty;// ?? (methodInfo.Name.Equals("index", StringComparison.OrdinalIgnoreCase) ? string.Empty : methodInfo.Name.ToLowerInvariant());
 }

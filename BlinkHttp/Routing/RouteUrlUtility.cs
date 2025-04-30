@@ -65,13 +65,7 @@ namespace BlinkHttp.Routing
         internal static string? GetQuery(string url)
         {
             int index = url.IndexOf('?');
-
-            if (index == -1)
-            {
-                return null;
-            }
-
-            return url[index..];
+            return index > -1 ? url[index..] : null;
         }
 
         internal static string? GetRouteParameters(string url)
