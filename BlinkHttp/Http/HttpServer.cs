@@ -2,6 +2,7 @@
 using BlinkHttp.Authentication;
 using BlinkHttp.Configuration;
 using BlinkHttp.Handling;
+using BlinkHttp.Handling.Pipeline;
 using BlinkHttp.Routing;
 using Logging;
 using System.Net;
@@ -12,8 +13,7 @@ internal class HttpServer
 {
     private readonly HttpListener listener;
     private readonly Router router;
-    private readonly GeneralRequestHandler generalHandler;
-    private readonly MiddlewareHandler middlewareHandler;
+    private readonly Pipeline pipeline;
     private readonly IAuthorizer? authorizer;
     private readonly string[] prefixes;
     private readonly ILogger logger = Logger.GetLogger<HttpServer>();
@@ -24,14 +24,13 @@ internal class HttpServer
 
     private readonly CancellationTokenSource cts;
 
-    internal HttpServer(IAuthorizer? authorizer, IConfiguration? configuration, MiddlewareHandler middlewareHandler, string? routePrefix, params string[] prefixes)
+    internal HttpServer(IAuthorizer? authorizer, IConfiguration? configuration, IMiddleware[] middlewares, string? routePrefix, params string[] prefixes)
     {
         logger.Debug("Initializing HTTP server...");
 
         listener = new HttpListener();
 
         this.authorizer = authorizer;
-        this.middlewareHandler = middlewareHandler;
         this.prefixes = prefixes;
         this.routePrefix = routePrefix;
 
@@ -45,7 +44,7 @@ internal class HttpServer
         cts = new CancellationTokenSource();
 
         router = ConfigureRouter();
-        generalHandler = new GeneralRequestHandler(router, authorizer, configuration);
+        pipeline = PipelineBuilder.GetPipelineBuilderWithDefaults(router, authorizer, middlewares).Build();
     }
 
     private Router ConfigureRouter()
@@ -94,27 +93,21 @@ internal class HttpServer
     {
         HttpListenerRequest request = context.Request;
         HttpListenerResponse response = context.Response;
-        ControllerContext httpContext = new ControllerContext(request, response);
+        HttpContext _context = new HttpContext(request, response);
 
         logger.Debug($"Received request [{request.HttpMethod}] from {request.LocalEndPoint.Address} - {request.Url}");
 
-        bool middlewareDone = middlewareHandler.Handle(request, response);
-        byte[] buffer = [];
+        await pipeline.Invoke(_context);
 
-        if (middlewareDone)
+        if (_context.Buffer != null)
         {
-            generalHandler.HandleRequest(httpContext, ref buffer);
             using Stream output = response.OutputStream;
-            await output.WriteAsync(buffer);
-        }
-        else
-        {
-            logger.Debug("Middleware pipeline was interrupted.");
+            response.ContentLength64 = _context.Buffer.Length;
+            await output.WriteAsync(_context.Buffer); 
         }
 
         response.Close();
-
-        logger.Debug($"Handling request finished with status code: {response.StatusCode}. Response size: {buffer.Length}");
+        logger.Debug($"Handling request finished with status code: {response.StatusCode}. Response size: {_context.Buffer?.Length ?? 0}");
     }
 
     public void Stop() => cts.Cancel();

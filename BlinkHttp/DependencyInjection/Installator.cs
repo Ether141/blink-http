@@ -87,8 +87,8 @@ internal class Installator
         return Activator.CreateInstance(type, args)!;
     }
 
-    internal MiddlewareHandler ResolveMiddlewareHandler() =>
-        new MiddlewareHandler(Middlewares.Select(m => MiddlewareInstances.FirstOrDefault(i => i.GetType() == m) ?? InstantiateClass(m)).Cast<IMiddleware>());
+    internal IMiddleware[] ResolveMiddlewares() =>
+        Middlewares.Select(m => MiddlewareInstances.FirstOrDefault(i => i.GetType() == m) ?? InstantiateClass(m)).Cast<IMiddleware>().ToArray();
 
     private object GetSingleton(Type implementationType)
     {

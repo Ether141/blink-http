@@ -1,4 +1,6 @@
-﻿using System.Net;
+﻿using BlinkHttp.Handling.Pipeline;
+using BlinkHttp.Http;
+using System.Net;
 
 namespace BlinkHttp.Handling;
 
@@ -7,9 +9,7 @@ namespace BlinkHttp.Handling;
 /// </summary>
 public interface IMiddleware
 {
-    /// <summary>
-    /// Handles the incoming HTTP request and produces a corresponding HTTP response. 
-    /// Returns true if request was handled and pipeline can move on to the next middleware. Otherwise returns false, which tells server to break the pipeline and send the response to the client.
-    /// </summary>
-    bool Handle(HttpListenerRequest request, HttpListenerResponse response);
+    MiddlewareDelegate Next { get; set; }
+
+    Task InvokeAsync(HttpContext context);
 }

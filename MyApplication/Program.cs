@@ -50,17 +50,17 @@ internal class Program
         WebApplicationBuilder builder = new WebApplicationBuilder();
 
         builder.Services
-            .AddConfiguration(config)
-            .AddPostgreSql()
-            .AddSingleton<IFilesProvider, FilesProvider>()
-            .AddSingleton<IUserInfoProvider, UserInfoProvider>();
+            .AddConfiguration(config);
+            //.AddPostgreSql()
+            //.AddSingleton<IFilesProvider, FilesProvider>()
+            //.AddSingleton<IUserInfoProvider, UserInfoProvider>();
 
         builder
             .ConfigureLogging(s => s.UseConsole())
             .UseConfiguration()
             .AddCORS()
-            .SetRoutePrefix(config["route_prefix"])
-            .UseSessionAuthorization(opt => opt.EnableSessionExpiration(TimeSpan.FromHours(12)));
+            .SetRoutePrefix(config["route_prefix"]);
+            //.UseSessionAuthorization(opt => opt.EnableSessionExpiration(TimeSpan.FromHours(12)));
 
         WebApplication app = builder.Build();
         await app.Run(args);

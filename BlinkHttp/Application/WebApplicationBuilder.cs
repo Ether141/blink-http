@@ -6,6 +6,7 @@ using BlinkDatabase.General;
 using BlinkHttp.DependencyInjection;
 using BlinkDatabase.PostgreSql;
 using BlinkHttp.Http;
+using BlinkHttp.Handling.Pipeline;
 
 namespace BlinkHttp.Application;
 
@@ -107,15 +108,15 @@ public class WebApplicationBuilder
     /// </summary>
     public WebApplicationBuilder AddCORS(Action<CorsOptions> opt)
     {
-        if (Services.Installator.Middlewares.Any(m => m.GetType() == typeof(CorsMiddleware)))
+        if (Services.Installator.Middlewares.Any(m => m.GetType() == typeof(CorsHandler)))
         {
             return this;
         }
 
         CorsOptions options = new CorsOptions();
         opt.Invoke(options);
-        Services.Installator.Middlewares.Insert(0, typeof(CorsMiddleware));
-        Services.Installator.MiddlewareInstances.Insert(0, new CorsMiddleware(options));
+        Services.Installator.Middlewares.Insert(0, typeof(CorsHandler));
+        Services.Installator.MiddlewareInstances.Insert(0, new CorsHandler(options));
         return this;
     }
 
