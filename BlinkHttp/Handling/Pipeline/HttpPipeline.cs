@@ -2,11 +2,11 @@
 
 namespace BlinkHttp.Handling.Pipeline;
 
-internal class Pipeline
+internal class HttpPipeline
 {
     private readonly IMiddleware[] middlewares;
 
-    internal Pipeline(params IEnumerable<IMiddleware> middlewares)
+    internal HttpPipeline(params IEnumerable<IMiddleware> middlewares)
     {
         this.middlewares = middlewares.ToArray();
         InitializeMiddlewares();

@@ -1,10 +1,8 @@
-﻿using BlinkDatabase.General;
-using BlinkDatabase.PostgreSql;
-using BlinkHttp.Authentication;
+﻿using BlinkHttp.Authentication;
 using BlinkHttp.Configuration;
 using BlinkHttp.DependencyInjection;
 using BlinkHttp.Handling;
-using BlinkHttp.Http;
+using BlinkHttp.Server;
 using Logging;
 
 namespace BlinkHttp.Application;
@@ -15,16 +13,36 @@ namespace BlinkHttp.Application;
 public class WebApplication
 {
     private bool isServerRunning;
-    private HttpServer? server;
+    private IServer server;
 
-    public string StartMessage { get; internal set; } = "HTTP server started. Ctrl + C to stop.";
-    public IConfiguration? Configuration { get; internal init; }
-    public string[]? Prefixes { get; internal set; }
-    public IAuthorizer? Authorizer { get; internal init; }
-    public string? RoutePrefix { get; internal init; }
-    internal ServicesContainer? DependencyInjector { get; init; }
+    /// <summary>
+    /// Gets the configuration instance used by the application. Not null only if conifguration was turned on during building of <see cref="WebApplication"/>.
+    /// </summary>
+    public IConfiguration? Configuration { get; }
+
+    /// <summary>
+    /// Gets the authorizer instance used for handling authorization. Not null only if authorization was turned on during building of <see cref="WebApplication"/>.
+    /// </summary>
+    public IAuthorizer? Authorizer { get; }
+
+    private readonly ServicesContainer services;
+    private readonly RequestsHandler handler;
+
+    private readonly IAuthorizer? authorizer;
+    private readonly string? routePrefix;
 
     private readonly ILogger logger = Logger.GetLogger<WebApplication>();
+
+    internal WebApplication(IServer server, ServicesContainer services, IAuthorizer? authorizer, IConfiguration? configuration, IMiddleware[] middlewares, string? routePrefix)
+    {
+        this.server = server;
+        this.services = services;
+
+        this.authorizer = authorizer;
+        this.routePrefix = routePrefix;
+
+        handler = new RequestsHandler(authorizer, middlewares, routePrefix);
+    }
 
     /// <summary>
     /// Starts a web application and an HTTP server as an asynchronous operation and blocks the main thread, until the server stops.
@@ -33,26 +51,15 @@ public class WebApplication
 
     private async Task StartServer()
     {
-        if (Prefixes == null && Configuration != null)
-        {
-            Prefixes = Configuration.GetArray("server:prefixes") ?? throw new ArgumentNullException("server:prefix options cannot be found in the configuration file.");
-        }
-        else
-        {
-            throw new NullReferenceException("Configuration is not provided.");
-        }
-
         Console.CancelKeyPress += ConsoleExit;
         AppDomain.CurrentDomain.ProcessExit += (_, _) => isServerRunning = false;
 
-        ControllersFactory.Initialize(DependencyInjector!);
-        server = new HttpServer(Authorizer, Configuration, DependencyInjector!.Installator.ResolveMiddlewares(), RoutePrefix, Prefixes);
+        ControllersFactory.Initialize(services);
 
+        server.RequestReceived += handler.HandleRequestAsync;
         Task serverTask = server.StartAsync();
 
         isServerRunning = true;
-
-        logger.Info(StartMessage);
 
         while (isServerRunning) { }
 

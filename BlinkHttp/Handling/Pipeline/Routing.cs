@@ -19,7 +19,7 @@ internal class Routing : IMiddleware
 
     public async Task InvokeAsync(HttpContext context)
     {
-        HttpListenerResponse response = context.Response!;
+        HttpResponse response = context.Response!;
         Http.HttpMethod httpMethod;
 
         try

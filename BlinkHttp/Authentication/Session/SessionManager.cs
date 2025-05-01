@@ -1,4 +1,5 @@
-﻿using System.Net;
+﻿using BlinkHttp.Http;
+using System.Net;
 
 namespace BlinkHttp.Authentication.Session;
 
@@ -28,9 +29,9 @@ public sealed class SessionManager : IAuthorizer
     internal void EnableSessionExpiration(TimeSpan duration) => sessionValidFor = duration;
 
     /// <summary>
-    /// Creates new session for given user ID, tracks this newly created session and optionally adds session cookie to the given <seealso cref="HttpListenerResponse"/>.
+    /// Creates new session for given user ID, tracks this newly created session and optionally adds session cookie to the given <seealso cref="HttpResponse"/>.
     /// </summary>
-    public SessionInfo CreateSession(string userId, HttpListenerResponse? response)
+    public SessionInfo CreateSession(string userId, HttpResponse? response)
     {
         SessionInfo createdSession = CreateNewSession(userId);
 
@@ -43,9 +44,9 @@ public sealed class SessionManager : IAuthorizer
     }
 
     /// <summary>
-    /// Invalids session from session cookie from given <seealso cref="HttpListenerRequest"/> and deletes it from the session storage.
+    /// Invalids session from session cookie from given <seealso cref="HttpRequest"/> and deletes it from the session storage.
     /// </summary>
-    public void InvalidSession(HttpListenerRequest request)
+    public void InvalidSession(HttpRequest request)
     {
         string? sessionId = CookieHelper.GetSessionIdFromCookie(request);
 
@@ -58,9 +59,9 @@ public sealed class SessionManager : IAuthorizer
     }
 
     /// <summary>
-    /// Attempts to authorize given <seealso cref="HttpListenerRequest"/> using session ID from cookie, if it's present in the request. Also optionally checks user priviliges, based on given <seealso cref="AuthenticationRules"/> if provided.
+    /// Attempts to authorize given <seealso cref="HttpRequest"/> using session ID from cookie, if it's present in the request. Also optionally checks user priviliges, based on given <seealso cref="AuthenticationRules"/> if provided.
     /// </summary>
-    public AuthorizationResult Authorize(HttpListenerRequest request, AuthenticationRules? rules)
+    public AuthorizationResult Authorize(HttpRequest request, AuthenticationRules? rules)
     {
         string? sessionId = CookieHelper.GetSessionIdFromCookie(request);
 

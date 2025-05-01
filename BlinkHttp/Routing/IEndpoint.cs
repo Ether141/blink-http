@@ -10,7 +10,8 @@ internal interface IEndpoint
     MethodInfo MethodInfo { get; }
     bool MethodHasParameters { get; }
     bool IsSecure { get; }
+    bool IsAwaitable { get; }
     AuthenticationRules? AuthenticationRules { get; }
 
-    IHttpResult? InvokeEndpoint(Controller controller, object?[]? args);
+    object? InvokeEndpoint(Controller controller, object?[]? args);
 }

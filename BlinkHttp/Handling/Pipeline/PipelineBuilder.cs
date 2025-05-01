@@ -34,7 +34,7 @@ internal class PipelineBuilder
         return this;
     }
 
-    internal Pipeline Build() => new Pipeline(middlewares);
+    internal HttpPipeline Build() => new HttpPipeline(middlewares);
 
     internal static PipelineBuilder GetPipelineBuilderWithDefaults(Router router, IAuthorizer? authorizer, IMiddleware[] customMiddlewares)
     {

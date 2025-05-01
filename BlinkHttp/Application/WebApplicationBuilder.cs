@@ -1,12 +1,12 @@
-﻿using BlinkHttp.Authentication.Session;
-using BlinkHttp.Authentication;
+﻿using BlinkHttp.Authentication;
+using BlinkHttp.Authentication.Session;
 using BlinkHttp.Configuration;
-using Logging;
-using BlinkDatabase.General;
 using BlinkHttp.DependencyInjection;
-using BlinkDatabase.PostgreSql;
-using BlinkHttp.Http;
 using BlinkHttp.Handling.Pipeline;
+using BlinkHttp.Http;
+using BlinkHttp.Server;
+using BlinkHttp.Server.Default;
+using Logging;
 
 namespace BlinkHttp.Application;
 
@@ -17,9 +17,9 @@ public class WebApplicationBuilder
 {
     private IConfiguration? configuration;
     private string[]? prefixes;
-    private string? startMessage;
     private IAuthorizer? authorizer;
     private string? routePrefix;
+    private Func<IServer>? serverProvider;
 
     /// <summary>
     /// Allows to define services for dependency injection, which will be used across application.
@@ -41,15 +41,6 @@ public class WebApplicationBuilder
     public WebApplicationBuilder AddPrefix(params string[] prefixes)
     {
         this.prefixes = prefixes;
-        return this;
-    }
-
-    /// <summary>
-    /// Sets start message, which will be displayed in logs, when server is started.
-    /// </summary>
-    public WebApplicationBuilder SetStartMessage(string startMessage)
-    {
-        this.startMessage = startMessage;
         return this;
     }
 
@@ -123,23 +114,21 @@ public class WebApplicationBuilder
     /// <summary>
     /// Builds new instance of <seealso cref="WebApplication"/> and configure its features.
     /// </summary>
-    public WebApplication Build()
-    {
-        WebApplication app = new WebApplication
-        {
-            Configuration = configuration,
-            Authorizer = authorizer,
-            RoutePrefix = routePrefix,
-            Prefixes = prefixes,
-            DependencyInjector = Services
-        };
+    public WebApplication Build() =>
+        new WebApplication((serverProvider ?? GetDefaultServer).Invoke(), Services, authorizer, configuration, Services.Installator.ResolveMiddlewares(), routePrefix);
 
-        if (startMessage != null)
+    private IServer GetDefaultServer()
+    {
+        if (prefixes == null && configuration != null)
         {
-            app.StartMessage = startMessage;
+            prefixes = configuration.GetArray("server:prefixes") ?? throw new ArgumentNullException("server:prefix options cannot be found in the configuration file.");
+        }
+        else
+        {
+            throw new NullReferenceException("Configuration is not provided.");
         }
 
-        return app;
+        return new SimpleServer(prefixes);
     }
 
     private static SessionManager GetSessionManager(IUserInfoProvider userInfoProvider, SessionOptions? opt)

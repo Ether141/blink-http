@@ -1,10 +1,7 @@
 ﻿using BlinkHttp.Http;
-using BlinkHttp.Routing;
 using BlinkHttp.Serialization;
-using System.IO;
-using System.Net;
-using System;
 using Logging;
+using System.Net;
 
 namespace BlinkHttp.Handling.Pipeline;
 
@@ -39,15 +36,36 @@ internal class EndpointHandler : IMiddleware
             return;
         }
 
-        IHttpResult? result = context.Route.Endpoint.InvokeEndpoint(controller, args);
+        object? resultObject = null;
 
-        if (result == null)
+        if (context.Route.Endpoint.IsAwaitable)
+        {
+            object? invokeResult = context.Route.Endpoint.InvokeEndpoint(controller, args);
+
+            if (invokeResult is Task<IHttpResult> task)
+            {
+                resultObject = await task;
+            }
+            else
+            {
+                logger.Error("Internal server error.");
+                context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+                return;
+            }
+        }
+        else
+        {
+            resultObject = context.Route.Endpoint.InvokeEndpoint(controller, args);
+        }
+
+        if (resultObject == null)
         {
             logger.Error("Internal server error.");
             context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
             return;
         }
 
+        IHttpResult result = (IHttpResult)resultObject;
         context.Buffer = result.Data;
         context.Response.ContentType = result.ContentType;
         context.Response.StatusCode = (int)result.HttpCode;
@@ -58,5 +76,7 @@ internal class EndpointHandler : IMiddleware
         }
 
         logger.Debug($"ContentLength: {context.Buffer.Length} | ContentType: {context.Response.ContentType} | ContentDisposition: {result.ContentDisposition ?? "N/A"}");
+
+        await Task.CompletedTask;
     }
 }

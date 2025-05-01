@@ -1,8 +1,5 @@
-﻿using BlinkDatabase.PostgreSql;
-using BlinkHttp.Application;
-using BlinkHttp.Authentication;
+﻿using BlinkHttp.Application;
 using BlinkHttp.Configuration;
-using BlinkHttp.DependencyInjection;
 
 namespace MyApplication;
 
@@ -52,7 +49,6 @@ internal class Program
         builder.Services
             .AddConfiguration(config);
             //.AddPostgreSql()
-            //.AddSingleton<IFilesProvider, FilesProvider>()
             //.AddSingleton<IUserInfoProvider, UserInfoProvider>();
 
         builder

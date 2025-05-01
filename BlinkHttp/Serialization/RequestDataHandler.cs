@@ -1,4 +1,5 @@
-﻿using BlinkHttp.Routing;
+﻿using BlinkHttp.Http;
+using BlinkHttp.Routing;
 using System.Net;
 using System.Reflection;
 
@@ -6,7 +7,7 @@ namespace BlinkHttp.Serialization;
 
 internal static class RequestDataHandler
 {
-    internal static object?[]? GetArguments(Route route, string path, HttpListenerRequest request)
+    internal static object?[]? GetArguments(Route route, string path, HttpRequest request)
     {
         List<object?>? args = null;
 
@@ -44,7 +45,7 @@ internal static class RequestDataHandler
         return null;
     }
 
-    private static object?[]? GetArgumentsFromBody(Route route, HttpListenerRequest request)
+    private static object?[]? GetArgumentsFromBody(Route route, HttpRequest request)
     {
         MethodInfo methodInfo = route.Endpoint.MethodInfo;
 

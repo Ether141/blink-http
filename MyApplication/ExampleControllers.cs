@@ -25,8 +25,9 @@ internal class ApiController : Controller
     }
 
     [HttpGet]
-    public IHttpResult Get()
+    public async Task<IHttpResult> Get()
     {
+        await Task.Delay(1000);
         return Ok();
     }
 
@@ -106,57 +107,57 @@ internal class BooksController : Controller
     }
 }
 
-//[Route("user")]
-//internal class UserController : Controller
-//{
-//    private readonly IAuthenticationProvider authenticationProvider;
-//    private readonly IAuthorizer authorizer;
-//    private readonly IRepository<User> repository;
+[Route("user")]
+internal class UserController : Controller
+{
+    private readonly IAuthenticationProvider authenticationProvider;
+    private readonly IAuthorizer authorizer;
+    private readonly IRepository<User> repository;
 
-//    public UserController(IAuthorizer authorizer, IUserInfoProvider userInfoProvider, IRepository<User> repository)
-//    {
-//        this.authorizer = authorizer;
-//        authenticationProvider = new AuthenticationProvider(userInfoProvider);
-//        this.repository = repository;
-//    }
+    public UserController(IAuthorizer authorizer, IUserInfoProvider userInfoProvider, IRepository<User> repository)
+    {
+        this.authorizer = authorizer;
+        authenticationProvider = new AuthenticationProvider(userInfoProvider);
+        this.repository = repository;
+    }
 
-//    [HttpPost]
-//    public IHttpResult Create()
-//    {
-//        MyApplication.User user = new MyApplication.User() { Username = "bartek", Email = "bartek@gmail.com", PasswordHash = "hashed_password_11", Profile = new UserProfile() { Id = 11 }, Role = new Role() { Id = 1 }, BirthDate = DateTime.Now, CreatedAt = DateTime.Now };
-//        repository.Insert(user);
-//        Console.WriteLine(user.Id);
-//        return Created();
-//    }
+    [HttpPost("create")]
+    public IHttpResult Create()
+    {
+        MyApplication.User user = new MyApplication.User() { Username = "bartek", Email = "bartek@gmail.com", PasswordHash = "hashed_password_11", Profile = new UserProfile() { Id = 11 }, Role = new Role() { Id = 1 }, BirthDate = DateTime.Now, CreatedAt = DateTime.Now };
+        repository.Insert(user);
+        Console.WriteLine(user.Id);
+        return Created();
+    }
 
-//    [HttpPost]
-//    public IHttpResult Login([FromBody] string username, [FromBody] string password)
-//    {
-//        CredentialsValidationResult validationResult = CredentialsValidationResult.Success;
+    [HttpPost("login")]
+    public IHttpResult Login([FromBody] string username, [FromBody] string password)
+    {
+        CredentialsValidationResult validationResult = CredentialsValidationResult.Success;
 
-//        if (validationResult != CredentialsValidationResult.Success)
-//        {
-//            return JsonResult.FromObject(new { result = validationResult.ToString() }, System.Net.HttpStatusCode.Unauthorized);
-//        }
+        if (validationResult != CredentialsValidationResult.Success)
+        {
+            return JsonResult.FromObject(new { result = validationResult.ToString() }, System.Net.HttpStatusCode.Unauthorized);
+        }
 
-//        IUser user = new User() { Id = new Guid("7fff15d8-ef6e-4868-baa4-fab6cad68697"), Username = "ewa_art", Role = new Role() { Id = 1, RoleName = "user" } };
-//        ((SessionManager)authorizer).CreateSession(user!.Id, Response);
+        IUser user = new User() { Id = new Guid("7fff15d8-ef6e-4868-baa4-fab6cad68697"), Username = "ewa_art", Role = new Role() { Id = 1, RoleName = "user" } };
+        ((SessionManager)authorizer).CreateSession(user!.Id, Response);
 
-//        return JsonResult.FromObject(new { user!.Id, user!.Username, roles = string.Join(", ", user!.Roles) });
-//    }
+        return JsonResult.FromObject(new { user!.Id, user!.Username, roles = string.Join(", ", user!.Roles) });
+    }
 
-//    [HttpPost]
-//    [Authorize]
-//    public IHttpResult Get()
-//    {
-//        return JsonResult.FromObject(Request!.Cookies["session_id"]?.Value!);
-//    }
+    [HttpPost("get")]
+    [Authorize]
+    public IHttpResult Get()
+    {
+        return JsonResult.FromObject(Request!.Cookies["session_id"]?.Value!);
+    }
 
-//    [HttpPost]
-//    [Authorize]
-//    public IHttpResult Logout()
-//    {
-//        ((SessionManager)authorizer).InvalidSession(Request!);
-//        return JsonResult.FromObject(new { result = "success" });
-//    }
-//}
+    [HttpPost("logout")]
+    [Authorize]
+    public IHttpResult Logout()
+    {
+        ((SessionManager)authorizer).InvalidSession(Request!);
+        return JsonResult.FromObject(new { result = "success" });
+    }
+}

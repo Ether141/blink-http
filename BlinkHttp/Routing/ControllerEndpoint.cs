@@ -10,6 +10,7 @@ internal sealed class ControllerEndpoint : IEndpoint
     public MethodInfo MethodInfo { get; }
     public bool MethodHasParameters { get; }
     public bool IsSecure { get; }
+    public bool IsAwaitable { get; }
     public AuthenticationRules? AuthenticationRules { get; }
     internal Type ControllerType { get; }
 
@@ -21,6 +22,7 @@ internal sealed class ControllerEndpoint : IEndpoint
 
         AuthorizeAttribute? attr = MethodInfo.GetCustomAttribute<AuthorizeAttribute>() ?? controllerType.GetCustomAttribute<AuthorizeAttribute>();
 
+        IsAwaitable = MethodInfo.ReturnType.GetMethod(nameof(Task.GetAwaiter)) != null;
         IsSecure = MethodInfo.GetCustomAttribute<AllowAnonymousAttribute>() == null && attr != null;
         MethodHasParameters = MethodInfo.GetParameters().Length > 0;
 
@@ -30,7 +32,8 @@ internal sealed class ControllerEndpoint : IEndpoint
         }
     }
 
-    public IHttpResult? InvokeEndpoint(Controller controller, object?[]? args) => MethodInfo.Invoke(controller, args) as IHttpResult;
+    public object? InvokeEndpoint(Controller controller, object?[]? args) => 
+        IsAwaitable ? MethodInfo.Invoke(controller, args) as Task<IHttpResult> : MethodInfo.Invoke(controller, args) as IHttpResult;
 
     public override string? ToString() => $"[{HttpMethod}] {MethodInfo.Name}";
 }
