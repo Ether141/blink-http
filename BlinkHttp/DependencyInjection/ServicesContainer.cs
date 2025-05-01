@@ -16,6 +16,8 @@ public class ServicesContainer
 {
     internal Installator Installator { get; } = new Installator();
 
+    internal ServicesContainer() { }
+
     /// <summary>
     /// Adds new singleton definition to the services that will be later used to resolve dependencies. A singleton will be created the first time a reference to it is requested, and the same instance will be used throughout the runtime of the application.
     /// </summary>

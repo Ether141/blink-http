@@ -40,6 +40,7 @@ internal class PipelineBuilder
     {
         PipelineBuilder builder = new PipelineBuilder(
             new ExceptionHandler(),
+            new StaticFiles(),
             new Routing(router),
             new CorsHandler(new CorsOptions()),
             new Auth(authorizer)
