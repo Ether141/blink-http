@@ -5,7 +5,7 @@ internal class FieldFromDatabase
     internal string FullName { get; }
     internal Type FieldType { get; }
     internal object Value { get; }
-    internal string PgsqlType { get; }
+    internal string SqlType { get; }
 
     internal string FieldName => FullName.Split('.')[^1];
 
@@ -14,8 +14,8 @@ internal class FieldFromDatabase
         FullName = name;
         FieldType = fieldType;
         Value = value;
-        PgsqlType = pgsqlType;
+        SqlType = pgsqlType;
     }
 
-    public override string? ToString() => $"{FullName}, {FieldType}, {PgsqlType}";
+    public override string? ToString() => $"{FullName}, {FieldType}, {SqlType}";
 }

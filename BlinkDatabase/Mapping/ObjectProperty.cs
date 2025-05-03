@@ -30,9 +30,10 @@ internal class ObjectProperty
 
     internal object? Get(object obj) => propertyInfo.GetValue(obj);
 
-    internal string GetAsSqlString(object obj)
+    internal string GetAsSqlString(object obj) => GetValueAsSqlString(Get(obj));
+
+    internal static string GetValueAsSqlString(object? value)
     {
-        object? value = Get(obj);
         Type type = value!.GetType();
 
         if (value == null)

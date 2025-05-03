@@ -13,15 +13,11 @@ internal class SqlSelectBuilder
     internal static string SelectExist<T>(Expression<Func<T, bool>> expression) where T : class, new()
     {
         string query = SelectInternal<T>(SqlWhereBuilder.Where(expression));
-        query = "SELECT 1 " + query[query.IndexOf("FROM")..] + " LIMIT 1";
-        return query;
+        return "SELECT 1 " + query[query.IndexOf("FROM")..] + " LIMIT 1";
     }
 
-    internal static string SelectExist<T>(int id) where T : class, new()
-    {
-        string query = $"SELECT 1 FROM {TableAttribute.GetTableName<T>()} WHERE \"{ObjectProperty.GetIdProperty(typeof(T)).ColumnName}\" = {id} LIMIT 1";
-        return query;
-    }
+    internal static string SelectExist<T>(object id) where T : class, new() =>
+        $"SELECT 1 FROM {TableAttribute.GetTableName<T>()} WHERE \"{ObjectProperty.GetIdProperty(typeof(T)).ColumnName}\" = {ObjectProperty.GetValueAsSqlString(id)} LIMIT 1";
 
     internal static string SelectInternal<T>(string? whereQuery) where T : class, new()
     {
