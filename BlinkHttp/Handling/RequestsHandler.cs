@@ -6,6 +6,7 @@ using BlinkHttp.Configuration;
 using BlinkHttp.Http;
 using System.Net;
 using Logging;
+using BlinkHttp.Swagger;
 
 namespace BlinkHttp.Handling;
 
@@ -16,10 +17,10 @@ internal class RequestsHandler
 
     private readonly ILogger logger = Logger.GetLogger<RequestsHandler>();
 
-    public RequestsHandler(IAuthorizer? authorizer, IMiddleware[] middlewares, string? routePrefix)
+    public RequestsHandler(Router router, IAuthorizer? authorizer, IMiddleware[] middlewares, string? routePrefix, CorsOptions? corsOptions)
     {
-        router = ConfigureRouter(routePrefix);
-        pipeline = PipelineBuilder.GetPipelineBuilderWithDefaults(router, authorizer, middlewares).Build();
+        this.router = router;
+        pipeline = PipelineBuilder.GetPipelineBuilderWithDefaults(router, authorizer, corsOptions, middlewares).Build();
     }
 
     internal async Task HandleRequestAsync(HttpServerContext context)
@@ -41,13 +42,5 @@ internal class RequestsHandler
 
         response.Close();
         logger.Debug($"Handling request finished with status code: {response.StatusCode}. Response size: {_context.Buffer?.Length ?? 0}");
-    }
-
-    private Router ConfigureRouter(string? routePrefix)
-    {
-        Router router = new Router();
-        router.Options.RoutePrefix = routePrefix;
-        router.InitializeAllRoutes();
-        return router;
     }
 }

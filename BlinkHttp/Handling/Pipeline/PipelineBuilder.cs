@@ -36,13 +36,13 @@ internal class PipelineBuilder
 
     internal HttpPipeline Build() => new HttpPipeline(middlewares);
 
-    internal static PipelineBuilder GetPipelineBuilderWithDefaults(Router router, IAuthorizer? authorizer, IMiddleware[] customMiddlewares)
+    internal static PipelineBuilder GetPipelineBuilderWithDefaults(Router router, IAuthorizer? authorizer, CorsOptions? corsOptions, IMiddleware[] customMiddlewares)
     {
         PipelineBuilder builder = new PipelineBuilder(
             new ExceptionHandler(),
             new StaticFiles(),
             new Routing(router),
-            new CorsHandler(new CorsOptions()),
+            new CorsHandler(corsOptions),
             new Auth(authorizer)
         );
 

@@ -10,12 +10,16 @@ internal class Router : IRouter
     private List<IRoutesCollection>? routes;
     private readonly ILogger logger = Logger.GetLogger<Router>();
 
-    public RouterOptions Options { get; }
-
-    public Router()
+    public IReadOnlyCollection<IRoutesCollection> Routes
     {
-        Options = new RouterOptions();
+        get
+        {
+            ThrowIfNotInitialized();
+            return routes!;
+        }
     }
+
+    public RouterOptions Options { get; } = new RouterOptions();
 
     public void InitializeAllRoutes()
     {
@@ -75,6 +79,11 @@ internal class Router : IRouter
 
         foreach (Type controllerType in allControllers)
         {
+            if (Options.IgnoredControllerTypes?.Contains(controllerType) ?? false)
+            {
+                continue;
+            }
+
             string route = RouteUrlUtility.GetRoutePathForController(controllerType, Options.RoutePrefix);
             routes!.Add(new ControllerRoute(route, controllerType));
         }

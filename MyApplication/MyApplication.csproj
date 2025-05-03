@@ -8,6 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\BlinkDatabase.PostgreSql\BlinkDatabase.PostgreSql.csproj" />
     <ProjectReference Include="..\BlinkDatabase\BlinkDatabase.csproj" />
     <ProjectReference Include="..\BlinkHttp\BlinkHttp.csproj" />
     <ProjectReference Include="..\Logging\Logging.csproj" />

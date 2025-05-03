@@ -2,10 +2,10 @@
 using BlinkHttp.Authentication.Session;
 using BlinkHttp.Configuration;
 using BlinkHttp.DependencyInjection;
-using BlinkHttp.Handling.Pipeline;
 using BlinkHttp.Http;
 using BlinkHttp.Server;
 using BlinkHttp.Server.Default;
+using BlinkHttp.Swagger;
 using Logging;
 
 namespace BlinkHttp.Application;
@@ -20,6 +20,8 @@ public class WebApplicationBuilder
     private IAuthorizer? authorizer;
     private string? routePrefix;
     private Func<IServer>? serverProvider;
+    private CorsOptions? corsOptions;
+    private bool useSwagger = false;
 
     /// <summary>
     /// Allows to define services for dependency injection, which will be used across application.
@@ -90,24 +92,33 @@ public class WebApplicationBuilder
     }
 
     /// <summary>
-    /// Adds Cross-Origin Resource Sharing (CORS) support to the application. By default, all headers and origins are accepted.
+    /// Adds Cross-Origin Resource Sharing (CORS) support to the application for all endpoints. By default, all headers, methods and origins are accepted and credentials are disabled.
     /// </summary>
-    public WebApplicationBuilder AddCORS() => AddCORS(opt => { });
+    public WebApplicationBuilder AddGlobalCORS() => AddGlobalCORS(opt => { });
 
     /// <summary>
-    /// Adds Cross-Origin Resource Sharing (CORS) support to the application, with the specified CORS options.
+    /// Adds Cross-Origin Resource Sharing (CORS) support to the application for all endpoints, with the specified CORS options.
     /// </summary>
-    public WebApplicationBuilder AddCORS(Action<CorsOptions> opt)
+    public WebApplicationBuilder AddGlobalCORS(Action<CorsOptions> opt)
     {
-        if (Services.Installator.Middlewares.Any(m => m.GetType() == typeof(CorsHandler)))
-        {
-            return this;
-        }
+        corsOptions = new CorsOptions();
+        opt.Invoke(corsOptions);
+        return this;
+    }
 
-        CorsOptions options = new CorsOptions();
-        opt.Invoke(options);
-        Services.Installator.Middlewares.Insert(0, typeof(CorsHandler));
-        Services.Installator.MiddlewareInstances.Insert(0, new CorsHandler(options));
+    /// <summary>
+    /// Configures Swagger documentation for the application with the specified title and version.
+    /// </summary>
+    public WebApplicationBuilder ConfigureSwagger(string title, string version) => ConfigureSwagger(title, version, []);
+
+    /// <summary>
+    /// Configures Swagger documentation for the application with the specified title and version, and optional metadata for selected endpoints.
+    /// </summary>
+    public WebApplicationBuilder ConfigureSwagger(string title, string version, params EndpointMetadata[] metadata)
+    {
+        SwaggerUI ui = new SwaggerUI("api/docs/swagger.json", title, version, metadata);
+        Services.AddSingleton<SwaggerUI>(ui);
+        useSwagger = true;
         return this;
     }
 
@@ -115,7 +126,7 @@ public class WebApplicationBuilder
     /// Builds new instance of <seealso cref="WebApplication"/> and configure its features.
     /// </summary>
     public WebApplication Build() =>
-        new WebApplication((serverProvider ?? GetDefaultServer).Invoke(), Services, authorizer, configuration, Services.Installator.ResolveMiddlewares(), routePrefix);
+        new WebApplication((serverProvider ?? GetDefaultServer).Invoke(), Services, authorizer, configuration, Services.Installator.ResolveMiddlewares(), routePrefix, corsOptions, useSwagger);
 
     private IServer GetDefaultServer()
     {

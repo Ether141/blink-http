@@ -1,5 +1,10 @@
-﻿using BlinkHttp.Application;
+﻿using BlinkDatabase.PostgreSql;
+using BlinkHttp.Application;
+using BlinkHttp.Authentication;
 using BlinkHttp.Configuration;
+using BlinkHttp.Http;
+using BlinkHttp.Swagger;
+using System.Net;
 
 namespace MyApplication;
 
@@ -54,7 +59,13 @@ internal class Program
         builder
             .ConfigureLogging(s => s.UseConsole())
             .UseConfiguration()
-            .AddCORS()
+            .AddGlobalCORS(opt =>
+            {
+                opt.Origin = "main";
+                opt.Headers = "main";
+                opt.Methods = "main";
+                opt.Credentials = true;
+            })
             .SetRoutePrefix(config["route_prefix"]);
             //.UseSessionAuthorization(opt => opt.EnableSessionExpiration(TimeSpan.FromHours(12)));
 

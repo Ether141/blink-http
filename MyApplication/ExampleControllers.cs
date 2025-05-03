@@ -21,10 +21,11 @@ internal class ApiController : Controller
     [HttpGet("search?query={query}&limit={limit}")]
     public IHttpResult Search([FromQuery] string query, [FromQuery, Optional] int? limit)
     {
-        return Ok();
+        return JsonResult.FromObject(new { query, limit });
     }
 
     [HttpGet]
+    [NoCors]
     public async Task<IHttpResult> Get()
     {
         await Task.Delay(1000);
@@ -74,11 +75,9 @@ internal class BooksController : Controller
         return JsonResult.FromObject(result.Select(b => new { b.Id, b.Name, b.Author, LibraryId = b.Library.Id }));
     }
 
-    [HttpGet("get/{id}")]
-    public IHttpResult GetBook([FromQuery] int id, [FromBody] decimal x)
+    [HttpGet("{id}")]
+    public IHttpResult GetBook([FromQuery] int id)
     {
-        Console.WriteLine(x);
-
         Book? book = repo.SelectSingle(b => b.Id == id);
 
         if (book == null)
@@ -89,7 +88,7 @@ internal class BooksController : Controller
         return JsonResult.FromObject(new { book.Id, book.Name, book.Author, LibraryId = book.Library.Id });
     }
 
-    [HttpPost("add")]
+    [HttpPost]
     public IHttpResult AddBook([FromBody] BookDO book)
     {
         Book bookToInsert = new Book() { Name = book.Name, Library = new Library() { Id = book.LibraryId }, Author = new Author() { Id = book.AuthorId } };
@@ -98,16 +97,33 @@ internal class BooksController : Controller
         return Created();
     }
 
-    [HttpDelete("delete")]
-    public IHttpResult DeleteBook([FromBody] int id)
+    [HttpPut]
+    public IHttpResult UpdateBook([FromBody] int id, [FromBody] BookDO book)
+    {
+        Book? bookFromDb = repo.SelectSingle(b => b.Id == id);
+
+        if (bookFromDb == null)
+        {
+            return NotFound();
+        }
+
+        bookFromDb.Name = book.Name;
+        bookFromDb.Author!.Id = book.AuthorId;
+        bookFromDb.Library!.Id = book.LibraryId;
+        repo.Update(bookFromDb);
+        return Ok();
+    }
+
+    [HttpDelete("{id}")]
+    public IHttpResult DeleteBook([FromQuery] int id)
     {
         bool success = repo.Delete(b => b.Id == id) == 1;
-
         return success ? Ok() : InternalServerError();
     }
 }
 
 [Route("user")]
+[Authorize]
 internal class UserController : Controller
 {
     private readonly IAuthenticationProvider authenticationProvider;
@@ -131,6 +147,7 @@ internal class UserController : Controller
     }
 
     [HttpPost("login")]
+    [AllowAnonymous]
     public IHttpResult Login([FromBody] string username, [FromBody] string password)
     {
         CredentialsValidationResult validationResult = CredentialsValidationResult.Success;
@@ -147,14 +164,12 @@ internal class UserController : Controller
     }
 
     [HttpPost("get")]
-    [Authorize]
     public IHttpResult Get()
     {
         return JsonResult.FromObject(Request!.Cookies["session_id"]?.Value!);
     }
 
     [HttpPost("logout")]
-    [Authorize]
     public IHttpResult Logout()
     {
         ((SessionManager)authorizer).InvalidSession(Request!);

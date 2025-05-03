@@ -4,6 +4,7 @@ namespace BlinkHttp.Routing;
 
 internal interface IRouter
 {
+    IReadOnlyCollection<IRoutesCollection> Routes { get; }
     RouterOptions? Options { get; }
 
     void InitializeAllRoutes();

@@ -2,7 +2,10 @@
 using BlinkHttp.Configuration;
 using BlinkHttp.DependencyInjection;
 using BlinkHttp.Handling;
+using BlinkHttp.Http;
+using BlinkHttp.Routing;
 using BlinkHttp.Server;
+using BlinkHttp.Swagger;
 using Logging;
 
 namespace BlinkHttp.Application;
@@ -25,23 +28,39 @@ public class WebApplication
     /// </summary>
     public IAuthorizer? Authorizer { get; }
 
+    /// <summary>
+    /// Determines whether the application is running in a development environment (i.e. DEBUG is defined).
+    /// </summary>
+    /// <returns>
+    /// <c>true</c> if the application is running in a development environment; otherwise, <c>false</c>.
+    /// </returns>
+    public static bool IsDevelopment
+    {
+        get
+        {
+#if DEBUG
+            return true;
+#else
+            return false;
+#endif
+        }
+    }
+
     private readonly ServicesContainer services;
     private readonly RequestsHandler handler;
 
     private readonly IAuthorizer? authorizer;
-    private readonly string? routePrefix;
 
     private readonly ILogger logger = Logger.GetLogger<WebApplication>();
 
-    internal WebApplication(IServer server, ServicesContainer services, IAuthorizer? authorizer, IConfiguration? configuration, IMiddleware[] middlewares, string? routePrefix)
+    internal WebApplication(IServer server, ServicesContainer services, IAuthorizer? authorizer, IConfiguration? configuration, IMiddleware[] middlewares, string? routePrefix, CorsOptions? corsOptions, bool useSwagger)
     {
         this.server = server;
         this.services = services;
-
         this.authorizer = authorizer;
-        this.routePrefix = routePrefix;
 
-        handler = new RequestsHandler(authorizer, middlewares, routePrefix);
+        Router router = ConfigureRouter(routePrefix, useSwagger);
+        handler = new RequestsHandler(router, authorizer, middlewares, routePrefix, corsOptions);
     }
 
     /// <summary>
@@ -67,6 +86,31 @@ public class WebApplication
         Logger.CleanupLoggers();
 
         await serverTask;
+    }
+
+    private Router ConfigureRouter(string? routePrefix, bool useSwagger)
+    {
+        Router router = new Router();
+        router.Options.RoutePrefix = routePrefix;
+
+        if (!useSwagger)
+        {
+            router.Options.IgnoredControllerTypes = [typeof(SwaggerController)];
+        }
+
+        router.InitializeAllRoutes();
+
+        if (useSwagger)
+        {
+            ((SwaggerUI)services.Installator.SingletonInstances[typeof(SwaggerUI)]).GenerateJson(router.Routes);
+
+            if (!IsDevelopment)
+            {
+                logger.Warning("You are using Swagger on the production environment.");
+            }
+        }
+
+        return router;
     }
 
     private void ConsoleExit(object? sender, ConsoleCancelEventArgs e)
