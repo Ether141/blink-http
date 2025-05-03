@@ -1,11 +1,6 @@
-﻿using System.Reflection;
-using System.Linq;
-using System.Reflection.Metadata;
-using BlinkDatabase.General;
-using BlinkDatabase.PostgreSql;
+﻿using BlinkDatabase.General;
 using BlinkHttp.Configuration;
 using BlinkHttp.Handling;
-using BlinkHttp.Http;
 
 namespace BlinkHttp.DependencyInjection;
 
@@ -17,6 +12,11 @@ public class ServicesContainer
     internal Installator Installator { get; } = new Installator();
 
     internal ServicesContainer() { }
+
+    /// <summary>
+    /// Gets the configuration instance used throughout the application runtime, if it was configured using <seealso cref="AddConfiguration{TConfigurationImplementation}(TConfigurationImplementation)"/>. Otherwise returns null.
+    /// </summary>
+    public IConfiguration? Configuration { get; private set; }
 
     /// <summary>
     /// Adds new singleton definition to the services that will be later used to resolve dependencies. A singleton will be created the first time a reference to it is requested, and the same instance will be used throughout the runtime of the application.
@@ -88,6 +88,7 @@ public class ServicesContainer
 
         Installator.Singletons[typeof(IConfiguration)] = typeof(TConfigurationImplementation);
         Installator.SingletonInstances[typeof(TConfigurationImplementation)] = implementation;
+        Configuration = implementation;
         return this;
     }
 
@@ -123,26 +124,21 @@ public class ServicesContainer
     }
 
     /// <summary>
-    /// Adds new <seealso cref="PostgreSqlConnection"/> as singleton, which will be used for handling database operations and supplying new <seealso cref="IRepository{T}"/>.
+    /// Adds a repository to the services container with the specified database connection and repository type.
     /// </summary>
-    /// <remarks>Note: When you add a database connection using this method, firstly you also need to add <seealso cref="IConfiguration"/> using the AddConfiguration method.</remarks>
-    public ServicesContainer AddPostgreSql()
+    /// <param name="connection">The database connection to be used by the repository.</param>
+    /// <param name="repositoryType">The type of the repository to be added. Must implement <see cref="IRepository{T}"/>.</param>
+    /// <returns>The current instance of <see cref="ServicesContainer"/> for method chaining.</returns>
+    /// <exception cref="ArgumentException">Thrown when the provided <paramref name="repositoryType"/> does not implement <see cref="IRepository{T}"/>.</exception>
+    public ServicesContainer AddRepository(IDatabaseConnection connection, Type repositoryType)
     {
-        IConfiguration configuration = Installator.GetSingletonByService<IConfiguration>();
-        bool loggingOn = configuration["sql:logging_on"] != null ? configuration.Get<bool>("sql:logging_on") : false;
-        AddPostgreSql(configuration.Get("sql:hostname")!, configuration.Get("sql:username")!, configuration.Get("sql:password")!, configuration.Get("sql:database")!, loggingOn);
-        return this;
-    }
+        if (!repositoryType.GetInterfaces().Any(x => x.IsGenericType && x.GetGenericTypeDefinition() == typeof(IRepository<>)))
+        {
+            throw new ArgumentException($"{repositoryType.Name} must implement IRepository<T> interface.", nameof(repositoryType));
+        }
 
-    /// <summary>
-    /// Adds new <seealso cref="PostgreSqlConnection"/> as singleton, which will be used for handling database operations and supplying new <seealso cref="IRepository{T}"/>.
-    /// </summary>
-    public ServicesContainer AddPostgreSql(string hostname, string username, string password, string database, bool loggingOn)
-    {
-        PostgreSqlConnection conn = new PostgreSqlConnection(hostname, username, password, database);
-        conn.SqlQueriesLogging = loggingOn;
-        AddSingleton<IDatabaseConnection, PostgreSqlConnection>(conn);
-        Installator.RepositoryType = typeof(PostgreSqlRepository<>);
+        AddSingleton<IDatabaseConnection>(connection);
+        Installator.RepositoryType = repositoryType;
         return this;
     }
 }
