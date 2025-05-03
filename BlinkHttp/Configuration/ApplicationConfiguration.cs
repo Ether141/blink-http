@@ -23,6 +23,9 @@ public class ApplicationConfiguration : IConfiguration
     /// </summary>
     public bool IsConfigurationLoaded => values != null;
 
+    /// <summary>
+    /// Default name of the configuration file.
+    /// </summary>
     public const string DefaultConfigFileName = "config.cfg";
 
     private Dictionary<string, string>? values;

@@ -31,7 +31,7 @@ internal class EndpointHandler : IMiddleware
 
         if (controller == null)
         {
-            logger.Error($"Unable to instantiate controller '{context.Route!.AssociatedRoute.ControllerType}'. Check whether all dependenciec can be resolved!");
+            logger.Error($"Unable to instantiate controller '{context.Route!.AssociatedRoute.ControllerType}'. Check whether all dependencies can be resolved!");
             context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
             return;
         }
