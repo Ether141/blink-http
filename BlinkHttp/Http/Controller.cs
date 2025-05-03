@@ -19,7 +19,7 @@ public abstract class Controller
     public HttpResponse? Response { get; internal set; }
 
     /// <summary>
-    /// Information about user that is associated with current request. Available only from endpoint method, marked with <seealso cref="AuthorizeAttribute"/> and when authorization was turned on during building <seealso cref="BlinkHttp.Application.WebApplication"/>.
+    /// Information about user that is associated with current request. Available only from endpoint method, or whole controller, marked with <seealso cref="AuthorizeAttribute"/> and when authorization was turned on during building <seealso cref="BlinkHttp.Application.WebApplication"/>.
     /// </summary>
     public IUser? User { get; internal set; }
 
