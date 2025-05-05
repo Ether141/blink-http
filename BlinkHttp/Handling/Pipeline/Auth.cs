@@ -3,7 +3,7 @@ using BlinkHttp.Http;
 using System.Net;
 using System.Text;
 using System;
-using Logging;
+using BlinkHttp.Logging;
 
 namespace BlinkHttp.Handling.Pipeline;
 
@@ -11,7 +11,7 @@ internal class Auth : IMiddleware
 {
     public MiddlewareDelegate Next { get; set; }
 
-    private readonly ILogger logger = Logger.GetLogger<Auth>();
+    private readonly ILogger logger = LoggerFactory.Create<Auth>();
     private readonly IAuthorizer? authorizer;
 
     public Auth(IAuthorizer? authorizer)

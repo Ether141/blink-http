@@ -3,6 +3,7 @@ using BlinkHttp.Application;
 using BlinkHttp.Authentication;
 using BlinkHttp.Configuration;
 using BlinkHttp.Http;
+using BlinkHttp.Logging;
 using BlinkHttp.Swagger;
 using System.Net;
 
@@ -48,16 +49,20 @@ internal class Program
         //    Console.WriteLine(library);
         //}
 
-        ApplicationConfiguration config = GetConfiguration();
         WebApplicationBuilder builder = new WebApplicationBuilder();
 
+        builder
+            .ConfigureLogging(s => s.UseConsole());
+
+        ApplicationConfiguration config = GetConfiguration(); // TODO: change way of handling configuration - move it to WebApplicationBuilder
+
         builder.Services
-            .AddConfiguration(config);
+            .AddConfiguration(config)
+            .AddBackgroundService(new EmailBackgroundService(), false);
             //.AddPostgreSql()
             //.AddSingleton<IUserInfoProvider, UserInfoProvider>();
 
         builder
-            .ConfigureLogging(s => s.UseConsole())
             .UseConfiguration()
             .AddGlobalCORS(opt =>
             {

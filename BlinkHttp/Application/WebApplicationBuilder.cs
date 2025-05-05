@@ -4,10 +4,11 @@ using BlinkHttp.Background;
 using BlinkHttp.Configuration;
 using BlinkHttp.DependencyInjection;
 using BlinkHttp.Http;
+using BlinkHttp.Logging;
 using BlinkHttp.Server;
 using BlinkHttp.Server.Default;
 using BlinkHttp.Swagger;
-using Logging;
+using BlinkHttp.Logging;
 
 namespace BlinkHttp.Application;
 
@@ -80,7 +81,9 @@ public class WebApplicationBuilder
     /// </summary>
     public WebApplicationBuilder ConfigureLogging(Action<LoggerSettings> settings)
     {
-        Logger.Configure(settings);
+        LoggerSettings sett = new LoggerSettings();
+        settings.Invoke(sett);
+        LoggerFactory.CreateFactory(sett);
         return this;
     }
 

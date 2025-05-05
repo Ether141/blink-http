@@ -1,5 +1,5 @@
 ﻿using BlinkHttp.Http;
-using Logging;
+using BlinkHttp.Logging;
 using System.Net.Http;
 using System.Reflection;
 
@@ -8,7 +8,7 @@ namespace BlinkHttp.Routing;
 internal class Router : IRouter
 {
     private List<IRoutesCollection>? routes;
-    private readonly ILogger logger = Logger.GetLogger<Router>();
+    private readonly ILogger logger = LoggerFactory.Create<Router>();
 
     public IReadOnlyCollection<IRoutesCollection> Routes
     {

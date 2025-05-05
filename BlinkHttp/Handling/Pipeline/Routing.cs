@@ -1,6 +1,6 @@
 ﻿using BlinkHttp.Http;
 using BlinkHttp.Routing;
-using Logging;
+using BlinkHttp.Logging;
 using System.Net;
 
 namespace BlinkHttp.Handling.Pipeline;
@@ -9,7 +9,7 @@ internal class Routing : IMiddleware
 {
     public MiddlewareDelegate Next { get; set; }
 
-    private readonly ILogger logger = Logger.GetLogger<Routing>();
+    private readonly ILogger logger = LoggerFactory.Create<Routing>();
     private readonly Router router;
 
     public Routing(Router router)

@@ -1,10 +1,10 @@
-﻿using BlinkDatabase.Annotations;
-using BlinkDatabase.General;
+﻿using BlinkDatabase.General;
 using BlinkHttp.Authentication;
 using BlinkHttp.Authentication.Session;
-using BlinkHttp.Configuration;
+using BlinkHttp.Background;
 using BlinkHttp.Http;
 using System.Data;
+using System.Net.Http.Headers;
 
 namespace MyApplication;
 
@@ -18,18 +18,45 @@ public class BookDO
 [Route("app")]
 internal class ApiController : Controller
 {
+    private readonly IBackgroundServices backgroundServices;
+
+    public ApiController(IBackgroundServices backgroundServices)
+    {
+        this.backgroundServices = backgroundServices;
+    }
+
     [HttpGet("search?query={query}&limit={limit}")]
     public IHttpResult Search([FromQuery] string query, [FromQuery, Optional] int? limit)
     {
         return JsonResult.FromObject(new { query, limit });
     }
 
-    [HttpGet]
     [NoCors]
+    [HttpGet]
     public async Task<IHttpResult> Get()
     {
         await Task.Delay(1000);
         return Ok();
+    }
+
+    [NoCors]
+    [HttpPost("emailserv")]
+    public async Task<IHttpResult> StartStopEmailService()
+    {
+        string message;
+
+        if (backgroundServices.IsRunning<EmailBackgroundService>())
+        {
+            message = "Email service was stopped.";
+            await backgroundServices.StopServiceAsync<EmailBackgroundService>();
+        }
+        else
+        {
+            message = "Email service was started";
+            backgroundServices.StartService<EmailBackgroundService>();
+        }
+
+        return JsonResult.FromObject(new { message });
     }
 
     [HttpPost]
@@ -54,7 +81,7 @@ internal class BooksController : Controller
     {
         IEnumerable<Book> allBooks = repo.Select();
         IEnumerable<Book> result;
-        
+
         if (start != null || end != null)
         {
             start ??= 0;

@@ -1,5 +1,5 @@
 ﻿using BlinkDatabase.General;
-using Logging;
+using BlinkHttp.Logging;
 using Npgsql;
 using System.Data.Common;
 
@@ -15,7 +15,7 @@ public class PostgreSqlConnection : IDatabaseConnection
     private readonly string? password;
     private readonly string? database;
 
-    private readonly ILogger logger = Logger.GetLogger<PostgreSqlConnection>();
+    private readonly ILogger logger = LoggerFactory.Create<PostgreSqlConnection>();
 
     /// <summary>
     /// Gets a value indicating whether the connection to the database is established.

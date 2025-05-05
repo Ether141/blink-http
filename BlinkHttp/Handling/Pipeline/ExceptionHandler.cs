@@ -1,5 +1,5 @@
 ﻿using BlinkHttp.Http;
-using Logging;
+using BlinkHttp.Logging;
 using System.Net;
 
 namespace BlinkHttp.Handling.Pipeline;
@@ -8,7 +8,7 @@ internal class ExceptionHandler : IMiddleware
 {
     public MiddlewareDelegate Next { get; set; }
 
-    private readonly ILogger logger = Logger.GetLogger<ExceptionHandler>();
+    private readonly ILogger logger = LoggerFactory.Create<ExceptionHandler>();
 
     public async Task InvokeAsync(HttpContext context)
     {

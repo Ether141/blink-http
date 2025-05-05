@@ -3,7 +3,7 @@ using BlinkHttp.Configuration;
 using BlinkHttp.Handling.Pipeline;
 using BlinkHttp.Handling;
 using BlinkHttp.Routing;
-using Logging;
+using BlinkHttp.Logging;
 using System.Net;
 using BlinkHttp.Http;
 
@@ -13,7 +13,7 @@ internal class SimpleServer : IServer
 {
     private readonly HttpListener listener;
 
-    private readonly ILogger logger = Logger.GetLogger<SimpleServer>();
+    private readonly ILogger logger = LoggerFactory.Create<SimpleServer>();
     private readonly CancellationTokenSource cts;
 
     public event Func<HttpServerContext, Task>? RequestReceived;

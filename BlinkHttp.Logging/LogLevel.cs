@@ -1,21 +1,23 @@
-﻿namespace Logging;
+﻿namespace BlinkHttp.Logging;
 
 public enum LogLevel
 {
+    Trace,
     Debug,
-    Info,
+    Information,
     Warning,
     Error,
     Critical
 }
 
-public static class LogLevelUtil
+internal static class LogLevelExtension
 {
     public static string GetString(this LogLevel level) => level switch
     {
+        LogLevel.Trace => "TRACE",
         LogLevel.Warning => "WARN",
         LogLevel.Error => "ERROR",
-        LogLevel.Info => "INFO",
+        LogLevel.Information => "INFO",
         LogLevel.Critical => "CRIT",
         _ => "DEBUG"
     };

@@ -1,6 +1,6 @@
 ﻿using BlinkHttp.Http;
 using BlinkHttp.Serialization;
-using Logging;
+using BlinkHttp.Logging;
 using System.Net;
 
 namespace BlinkHttp.Handling.Pipeline;
@@ -9,7 +9,7 @@ internal class EndpointHandler : IMiddleware
 {
     public MiddlewareDelegate Next { get; set; }
 
-    private readonly ILogger logger = Logger.GetLogger<EndpointHandler>();
+    private readonly ILogger logger = LoggerFactory.Create<EndpointHandler>();
 
     public async Task InvokeAsync(HttpContext context)
     {

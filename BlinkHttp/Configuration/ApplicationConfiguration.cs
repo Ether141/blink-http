@@ -1,4 +1,4 @@
-﻿using Logging;
+﻿using BlinkHttp.Logging;
 using System.Reflection;
 
 namespace BlinkHttp.Configuration;
@@ -29,7 +29,7 @@ public class ApplicationConfiguration : IConfiguration
     public const string DefaultConfigFileName = "config.cfg";
 
     private Dictionary<string, string>? values;
-    private readonly ILogger logger = Logger.GetLogger<ApplicationConfiguration>();
+    private readonly ILogger logger = LoggerFactory.Create<ApplicationConfiguration>();
     private ConfigurationValuesProvider valuesProvider;
 
     /// <summary>

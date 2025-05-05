@@ -7,7 +7,7 @@ using BlinkHttp.Http;
 using BlinkHttp.Routing;
 using BlinkHttp.Server;
 using BlinkHttp.Swagger;
-using Logging;
+using BlinkHttp.Logging;
 
 namespace BlinkHttp.Application;
 
@@ -53,7 +53,7 @@ public class WebApplication
 
     private readonly IAuthorizer? authorizer;
 
-    private readonly ILogger logger = Logger.GetLogger<WebApplication>();
+    private readonly ILogger logger = LoggerFactory.Create<WebApplication>();
 
     internal WebApplication(IServer server,
                             ServicesContainer services,
@@ -95,7 +95,6 @@ public class WebApplication
         while (isServerRunning) { }
 
         server.Stop();
-        Logger.CleanupLoggers();
 
         await StopAllBackgroundServicesAsync();
         await serverTask;

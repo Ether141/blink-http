@@ -5,7 +5,7 @@ using BlinkHttp.Server;
 using BlinkHttp.Configuration;
 using BlinkHttp.Http;
 using System.Net;
-using Logging;
+using BlinkHttp.Logging;
 using BlinkHttp.Swagger;
 
 namespace BlinkHttp.Handling;
@@ -15,7 +15,7 @@ internal class RequestsHandler
     private readonly Router router;
     private readonly HttpPipeline pipeline;
 
-    private readonly ILogger logger = Logger.GetLogger<RequestsHandler>();
+    private readonly ILogger logger = LoggerFactory.Create<RequestsHandler>();
 
     public RequestsHandler(Router router, IAuthorizer? authorizer, IMiddleware[] middlewares, string? routePrefix, CorsOptions? corsOptions)
     {

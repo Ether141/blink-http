@@ -1,8 +1,8 @@
 ﻿using System.Text;
 
-namespace Logging;
+namespace BlinkHttp.Logging;
 
-internal class FileLogger : IGeneralLogger, IDisposable
+internal class FileLogger : ILogSink, IDisposable
 {
     internal string FilePath { get; }
 

@@ -1,6 +1,6 @@
 ﻿using BlinkHttp.Files;
 using BlinkHttp.Http;
-using Logging;
+using BlinkHttp.Logging;
 using System.Net;
 using System.Text;
 
@@ -10,7 +10,7 @@ namespace BlinkHttp.Handling.Pipeline
     {
         public MiddlewareDelegate Next { get; set; }
 
-        private readonly ILogger logger = Logger.GetLogger<StaticFiles>();
+        private readonly ILogger logger = LoggerFactory.Create<StaticFiles>();
 
         public async Task InvokeAsync(HttpContext context)
         {

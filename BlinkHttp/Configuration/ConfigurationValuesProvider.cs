@@ -1,4 +1,4 @@
-﻿using Logging;
+﻿using BlinkHttp.Logging;
 
 namespace BlinkHttp.Configuration;
 
