@@ -1,4 +1,6 @@
 ﻿using BlinkDatabase.General;
+using BlinkHttp.Application;
+using BlinkHttp.Background;
 using BlinkHttp.Configuration;
 using BlinkHttp.Handling;
 
@@ -128,7 +130,6 @@ public class ServicesContainer
     /// </summary>
     /// <param name="connection">The database connection to be used by the repository.</param>
     /// <param name="repositoryType">The type of the repository to be added. Must implement <see cref="IRepository{T}"/>.</param>
-    /// <returns>The current instance of <see cref="ServicesContainer"/> for method chaining.</returns>
     /// <exception cref="ArgumentException">Thrown when the provided <paramref name="repositoryType"/> does not implement <see cref="IRepository{T}"/>.</exception>
     public ServicesContainer AddRepository(IDatabaseConnection connection, Type repositoryType)
     {
@@ -139,6 +140,21 @@ public class ServicesContainer
 
         AddSingleton<IDatabaseConnection>(connection);
         Installator.RepositoryType = repositoryType;
+        return this;
+    }
+
+    /// <summary>
+    /// Adds a background service to the services container.
+    /// </summary>
+    /// <param name="service">The background service to be added.</param>
+    /// <param name="autoStart">Indicates whether the background service should start automatically with server start.</param>
+    public ServicesContainer AddBackgroundService(IBackgroundService service, bool autoStart)
+    {
+        if (!Installator.BackgroundServices.Any(s => s.service == service))
+        {
+            Installator.BackgroundServices.Add((service, autoStart));
+        }
+
         return this;
     }
 }

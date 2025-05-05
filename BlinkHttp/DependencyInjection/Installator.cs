@@ -1,4 +1,5 @@
 ﻿using BlinkDatabase.General;
+using BlinkHttp.Background;
 using BlinkHttp.Handling;
 using System.Reflection;
 
@@ -14,6 +15,7 @@ internal class Installator
 
     internal List<Type> Middlewares { get; } = [];
     internal List<IMiddleware> MiddlewareInstances { get; } = [];
+    internal List<(IBackgroundService service, bool autoStart)> BackgroundServices { get; } = [];
 
     internal T InstantiateClass<T>() where T : class => (T)InstantiateClass(typeof(T));
 

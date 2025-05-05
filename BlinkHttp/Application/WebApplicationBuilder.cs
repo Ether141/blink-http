@@ -1,5 +1,6 @@
 ﻿using BlinkHttp.Authentication;
 using BlinkHttp.Authentication.Session;
+using BlinkHttp.Background;
 using BlinkHttp.Configuration;
 using BlinkHttp.DependencyInjection;
 using BlinkHttp.Http;
@@ -22,6 +23,7 @@ public class WebApplicationBuilder
     private Func<IServer>? serverProvider;
     private CorsOptions? corsOptions;
     private bool useSwagger = false;
+    private BackgroundServicesManager? backgroundServicesManager;
 
     /// <summary>
     /// Allows to define services for dependency injection, which will be used across application.
@@ -126,7 +128,26 @@ public class WebApplicationBuilder
     /// Builds new instance of <seealso cref="WebApplication"/> and configure its features.
     /// </summary>
     public WebApplication Build() =>
-        new WebApplication((serverProvider ?? GetDefaultServer).Invoke(), Services, authorizer, configuration, Services.Installator.ResolveMiddlewares(), routePrefix, corsOptions, useSwagger);
+        new WebApplication((serverProvider ?? GetDefaultServer).Invoke(),
+                           Services,
+                           authorizer,
+                           configuration,
+                           Services.Installator.ResolveMiddlewares(),
+                           routePrefix,
+                           corsOptions,
+                           useSwagger,
+                           GetBackgroundServicesManager());
+
+    private BackgroundServicesManager? GetBackgroundServicesManager()
+    {
+        if (Services.Installator.BackgroundServices.Count > 0)
+        {
+            backgroundServicesManager = new BackgroundServicesManager(Services.Installator.BackgroundServices);
+            Services.AddSingleton<IBackgroundServices, BackgroundServicesManager>(backgroundServicesManager);
+        }
+
+        return backgroundServicesManager;
+    }
 
     private IServer GetDefaultServer()
     {

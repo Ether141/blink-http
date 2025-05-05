@@ -1,4 +1,5 @@
 ﻿using BlinkHttp.Authentication;
+using BlinkHttp.Background;
 using BlinkHttp.Configuration;
 using BlinkHttp.DependencyInjection;
 using BlinkHttp.Handling;
@@ -11,12 +12,13 @@ using Logging;
 namespace BlinkHttp.Application;
 
 /// <summary>
-/// Main logic for a web application. Handles HTTP server, routing, authorization and database connection.
+/// Main logic for a web application. Handles HTTP server, routing, authorization, background services and database connection.
 /// </summary>
 public class WebApplication
 {
     private bool isServerRunning;
     private IServer server;
+    private BackgroundServicesManager? backgroundServicesManager;
 
     /// <summary>
     /// Gets the configuration instance used by the application. Not null only if conifguration was turned on during building of <see cref="WebApplication"/>.
@@ -53,11 +55,20 @@ public class WebApplication
 
     private readonly ILogger logger = Logger.GetLogger<WebApplication>();
 
-    internal WebApplication(IServer server, ServicesContainer services, IAuthorizer? authorizer, IConfiguration? configuration, IMiddleware[] middlewares, string? routePrefix, CorsOptions? corsOptions, bool useSwagger)
+    internal WebApplication(IServer server,
+                            ServicesContainer services,
+                            IAuthorizer? authorizer,
+                            IConfiguration? configuration,
+                            IMiddleware[] middlewares,
+                            string? routePrefix,
+                            CorsOptions? corsOptions,
+                            bool useSwagger,
+                            BackgroundServicesManager? backgroundServicesManager)
     {
         this.server = server;
         this.services = services;
         this.authorizer = authorizer;
+        this.backgroundServicesManager = backgroundServicesManager;
 
         Router router = ConfigureRouter(routePrefix, useSwagger);
         handler = new RequestsHandler(router, authorizer, middlewares, routePrefix, corsOptions);
@@ -73,6 +84,7 @@ public class WebApplication
         Console.CancelKeyPress += ConsoleExit;
         AppDomain.CurrentDomain.ProcessExit += (_, _) => isServerRunning = false;
 
+        backgroundServicesManager?.StartAllServices();
         ControllersFactory.Initialize(services);
 
         server.RequestReceived += handler.HandleRequestAsync;
@@ -85,6 +97,7 @@ public class WebApplication
         server.Stop();
         Logger.CleanupLoggers();
 
+        await StopAllBackgroundServicesAsync();
         await serverTask;
     }
 
@@ -111,6 +124,16 @@ public class WebApplication
         }
 
         return router;
+    }
+
+    private async Task StopAllBackgroundServicesAsync()
+    {
+        if (backgroundServicesManager != null)
+        {
+            await backgroundServicesManager.StopAllServicesAsync();
+        }
+
+        await Task.CompletedTask;
     }
 
     private void ConsoleExit(object? sender, ConsoleCancelEventArgs e)
