@@ -26,7 +26,7 @@ internal class EmailBackgroundService : IBackgroundService
         {
             try
             {
-                await Task.Delay(1000, ct);
+                await Task.Delay(2000, ct);
             }
             catch (TaskCanceledException)
             {
@@ -39,7 +39,11 @@ internal class EmailBackgroundService : IBackgroundService
 
     public async Task StopAsync()
     {
-        Console.WriteLine("stop async");
+        if (!IsRunning)
+        {
+            return;
+        }
+
         cts.Cancel();
         IsRunning = false;
         await Task.CompletedTask;

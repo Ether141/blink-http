@@ -9,6 +9,8 @@ internal class BackgroundServicesManager : IBackgroundServices
         this.services = services;
     }
 
+    public T GetService<T>() where T : IBackgroundService => (T)GetServiceByType<T>();
+
     public bool IsRunning<T>() where T : IBackgroundService
     {
         IBackgroundService service = GetServiceByType<T>();

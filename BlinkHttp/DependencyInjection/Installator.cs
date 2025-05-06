@@ -1,6 +1,7 @@
 ﻿using BlinkDatabase.General;
 using BlinkHttp.Background;
 using BlinkHttp.Handling;
+using BlinkHttp.Logging;
 using System.Reflection;
 
 namespace BlinkHttp.DependencyInjection;
@@ -63,6 +64,12 @@ internal class Installator
                 continue;
             }
 
+            if (IsLogger(parameter.ParameterType))
+            {
+                args[i] = GetLogger(type);
+                continue;
+            }
+
             Type? implementationType = Singletons.FirstOrDefault(s => s.Key == parameter.ParameterType).Value;
 
             if (implementationType != null && implementationType == type)
@@ -120,4 +127,8 @@ internal class Installator
     }
 
     private bool IsRepository(Type type) => type.IsGenericType && type.GetGenericTypeDefinition() == typeof(IRepository<>);
+
+    private object GetLogger(Type type) => LoggerFactory.Create(type);
+
+    private bool IsLogger(Type type) => type == typeof(ILogger);
 }

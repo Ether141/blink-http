@@ -4,6 +4,7 @@ using BlinkHttp.Configuration;
 using BlinkHttp.DependencyInjection;
 using BlinkHttp.Handling;
 using BlinkHttp.Http;
+using BlinkHttp.Logging;
 using BlinkHttp.Routing;
 using BlinkHttp.Server;
 using BlinkHttp.Swagger;
@@ -98,6 +99,7 @@ public class WebApplication
 
         await StopAllBackgroundServicesAsync();
         await serverTask;
+        CleanLoggers();
     }
 
     private Router ConfigureRouter(string? routePrefix, bool useSwagger)
@@ -134,6 +136,8 @@ public class WebApplication
 
         await Task.CompletedTask;
     }
+
+    private void CleanLoggers() => LoggerFactory.Clean();
 
     private void ConsoleExit(object? sender, ConsoleCancelEventArgs e)
     {

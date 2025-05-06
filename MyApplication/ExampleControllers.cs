@@ -3,8 +3,8 @@ using BlinkHttp.Authentication;
 using BlinkHttp.Authentication.Session;
 using BlinkHttp.Background;
 using BlinkHttp.Http;
+using BlinkHttp.Logging;
 using System.Data;
-using System.Net.Http.Headers;
 
 namespace MyApplication;
 
@@ -19,10 +19,12 @@ public class BookDO
 internal class ApiController : Controller
 {
     private readonly IBackgroundServices backgroundServices;
+    private readonly ILogger logger;
 
-    public ApiController(IBackgroundServices backgroundServices)
+    public ApiController(IBackgroundServices backgroundServices, ILogger logger)
     {
         this.backgroundServices = backgroundServices;
+        this.logger = logger;
     }
 
     [HttpGet("search?query={query}&limit={limit}")]
@@ -31,11 +33,17 @@ internal class ApiController : Controller
         return JsonResult.FromObject(new { query, limit });
     }
 
-    [NoCors]
     [HttpGet]
     public async Task<IHttpResult> Get()
     {
-        await Task.Delay(1000);
+        //logger.BeginScope("scope");
+        logger.Info("Received get request");
+        logger.Info("Additional info");
+        logger.Warning("Additional info");
+        logger.Error("Additional info");
+        logger.Critical("Additional info");
+        //logger.EndScope();
+        await Task.CompletedTask;
         return Ok();
     }
 

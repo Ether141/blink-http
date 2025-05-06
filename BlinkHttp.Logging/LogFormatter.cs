@@ -12,10 +12,11 @@ internal static class LogFormatter
     internal const string LoggerNameFormat = "%name";
     internal const string MessageFormat = "%message";
     internal const string LogLevelFormat = "%level";
+    internal const string ScopeFormat = "%scope";
 
-    internal const string DefaultFormat = "%D | %level:-5 | [%name] | %message";
+    internal const string DefaultFormat = "%D | %level:-5 | [%name] | (%scope) %message";
 
-    internal static string GetFormattedString(string message, string? loggerName, LogLevel logLevel, string? format)
+    internal static string GetFormattedString(string message, string? loggerName, string? scope, LogLevel logLevel, string? format)
     {
         loggerName ??= " ";
 
@@ -24,7 +25,8 @@ internal static class LogFormatter
         formatted = formatted.Replace(ShortDateFormat, GetDate(ShortDateFormat))
                              .Replace(LongDateFormat, GetDate(LongDateFormat))
                              .Replace(ShortTimeOnlyFormat, GetDate(ShortTimeOnlyFormat))
-                             .Replace(LongTimeOnlyFormat, GetDate(LongTimeOnlyFormat));
+                             .Replace(LongTimeOnlyFormat, GetDate(LongTimeOnlyFormat))
+                             .Replace(ScopeFormat, scope != null ? $"({scope})" : string.Empty);
 
         int padding = GetPadding(LoggerNameFormat, ref formatted);
         formatted = formatted.Replace(LoggerNameFormat, Pad(loggerName, padding));

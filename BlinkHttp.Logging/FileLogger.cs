@@ -6,16 +6,16 @@ internal class FileLogger : ILogSink, IDisposable
 {
     internal string FilePath { get; }
 
-    private readonly string? format;
+    public string? Format { get; set; }
+    public string? FileLogFooter { get; set; }
 
     private int writeOperations = 0;
     private FileStream? stream;
     private bool disposedValue;
 
-    public FileLogger(string? filePath, string? format)
+    public FileLogger(string? filePath)
     {
         FilePath = filePath ?? "./logs.txt";
-        this.format = format;
         OpenFileStream();
     }
 
@@ -29,7 +29,7 @@ internal class FileLogger : ILogSink, IDisposable
         stream = File.Open(FilePath, FileMode.Append, FileAccess.Write, FileShare.Read);
     }
 
-    public void Log(LogMessage message) => WriteText(message.GetFormattedMessage(format));
+    public void Log(LogMessage message) => WriteText(message.GetFormattedMessage(Format));
 
     private void WriteText(string text)
     {
@@ -46,7 +46,7 @@ internal class FileLogger : ILogSink, IDisposable
 
             stream.Write(bytes);
 
-            if (Interlocked.Increment(ref writeOperations) == 20)
+            if (Interlocked.Increment(ref writeOperations) == 10)
             {
                 Interlocked.Exchange(ref writeOperations, 0);
                 stream.Flush();
@@ -55,12 +55,30 @@ internal class FileLogger : ILogSink, IDisposable
         catch { }
     }
 
+    private void CreateNewLogFile()
+    {
+        if (stream != null)
+        {
+            stream.Flush();
+            stream.Close();
+            string ext = Path.GetExtension(FilePath);
+            File.Move(FilePath, FilePath[..ext.Length] + DateTime.Now.ToString() + ext);
+        }
+
+        stream = File.Open(FilePath, FileMode.Append, FileAccess.Write, FileShare.Read);
+    }
+
     protected virtual void Dispose(bool disposing)
     {
         if (!disposedValue)
         {
+            if (FileLogFooter != null)
+            {
+                WriteText(FileLogFooter);
+            }
+            
             stream?.Flush();
-            stream?.Dispose();
+            stream?.Close();
             stream = null;
             disposedValue = true;
         }
