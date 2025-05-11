@@ -1,6 +1,6 @@
 ﻿using BlinkHttp.Http;
-using BlinkHttp.Routing;
 using BlinkHttp.Logging;
+using BlinkHttp.Routing;
 using System.Net;
 
 namespace BlinkHttp.Handling.Pipeline;
@@ -20,7 +20,7 @@ internal class Routing : IMiddleware
     public async Task InvokeAsync(HttpContext context)
     {
         HttpResponse response = context.Response!;
-        Http.HttpMethod httpMethod;
+        Http.HttpMethod? httpMethod = null;
 
         try
         {
@@ -28,13 +28,32 @@ internal class Routing : IMiddleware
         }
         catch
         {
-            response.StatusCode = (int)HttpStatusCode.MethodNotAllowed;
-            response.ContentLength64 = 0;
-            return;
+            if (!context.Request.HttpMethod.Equals("options", StringComparison.OrdinalIgnoreCase))
+            {
+                response.StatusCode = (int)HttpStatusCode.MethodNotAllowed;
+                response.ContentLength64 = 0;
+                return;
+            }
         }
 
         string path = context.Request!.Url!.PathAndQuery;
-        Route? route = router.GetRoute(path, httpMethod);
+
+        if (httpMethod == null)
+        {
+            string? methodHeader = context.Request.Headers["Access-Control-Request-Method"];
+
+            if (methodHeader == null)
+            {
+                logger.Debug($"Request is probably preflight but has not Access-Control-Request-Method header");
+                response.StatusCode = (int)HttpStatusCode.MethodNotAllowed;
+                response.ContentLength64 = 0;
+                return;
+            }
+
+            httpMethod = HttpMethodExtension.Parse(methodHeader);
+        }
+
+        Route? route = router.GetRoute(path, httpMethod.Value);
 
         if (route == null)
         {
@@ -43,9 +62,9 @@ internal class Routing : IMiddleware
             return;
         }
 
-        if (!route.HttpMethod.ToString().Equals(context.Request.HttpMethod, StringComparison.OrdinalIgnoreCase))
+        if (!route.HttpMethod.ToString().Equals(context.Request.HttpMethod, StringComparison.OrdinalIgnoreCase) && !"options".Equals(context.Request.HttpMethod, StringComparison.OrdinalIgnoreCase))
         {
-            logger.Debug($"Received request method is not allowed for this route. Request method: {route.HttpMethod} | Required method: {context.Request.HttpMethod}");
+            logger.Debug($"Received request method is not allowed for this route. Request method: {context.Request.HttpMethod} | Required method: {route.HttpMethod}");
             response.StatusCode = (int)HttpStatusCode.MethodNotAllowed;
             response.ContentLength64 = 0;
             return;
