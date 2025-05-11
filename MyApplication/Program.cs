@@ -1,9 +1,5 @@
-﻿using BlinkDatabase;
-using BlinkDatabase.PostgreSql;
-using BlinkHttp.Application;
-using BlinkHttp.Authentication;
+﻿using BlinkHttp.Application;
 using BlinkHttp.Configuration;
-using Logging;
 
 namespace MyApplication;
 
@@ -11,61 +7,33 @@ internal class Program
 {
     public static async Task Main(string[] args)
     {
-        //Book book = new Book() { Id = 1, Library = new Library() { Id = 1 }};
-
-        //PostgreSqlConnection conn = new PostgreSqlConnection("172.18.133.85", "postgres", "password", "postgres");
-
-        //PostgreSqlRepository<User> usersRepo = new PostgreSqlRepository<User>(conn);
-
-        //User user = usersRepo.SelectSingle(u => u.Id == 10)!;
-        //user.Role!.Id = 1;
-        //usersRepo.Update(user);
-
-        //IEnumerable<User> allUsers = usersRepo.Select(u => u.Nickname == "mariad_art");
-
-        //foreach (User u in allUsers)
-        //{
-        //    Console.WriteLine(DatabaseObjectToString.ToString(u, false));
-        //}
-
-
-        //PostgreSqlRepository<Book> booksRepo = new PostgreSqlRepository<Book>(conn);
-
-        //IEnumerable<Book> books = booksRepo.Select();
-
-        //foreach (var b in books)
-        //{
-        //    Console.WriteLine(b);
-        //}
-
-
-        //PostgreSqlRepository<Library> libraries = new PostgreSqlRepository<Library>(conn);
-        //IEnumerable<Library> libs = libraries.Select(l => l.Type == LibraryType.Free && l.Id == 1);
-
-        //foreach (var library in libs)
-        //{
-        //    Console.WriteLine(library);
-        //}
-
-        ApplicationConfiguration config = GetConfiguration();
         WebApplicationBuilder builder = new WebApplicationBuilder();
+        ApplicationConfiguration config = GetConfiguration();
 
         builder.Services
             .AddConfiguration(config)
-            .AddPostgreSql()
-            .AddRepository<PostgreSqlRepository<Book>>()
-            .AddRepository<PostgreSqlRepository<User>>()
-            .AddSingleton<IUserInfoProvider, UserInfoProvider>();
+            .AddBackgroundService(new EmailBackgroundService(), false);
+            //.AddPostgreSql()
+            //.AddSingleton<IUserInfoProvider, UserInfoProvider>();
 
         builder
-            .ConfigureLogging(s => s.UseConsole())
+            .ConfigureLogging(ConfigureLogging)
             .UseConfiguration()
-            .SetRoutePrefix(config["route_prefix"])
-            .UseSessionAuthorization(opt => opt.EnableSessionExpiration(TimeSpan.FromHours(12)));
+            .AddGlobalCORS()
+            .SetRoutePrefix(config["route_prefix"]);
+            //.UseSessionAuthorization(opt => opt.EnableSessionExpiration(TimeSpan.FromHours(12)));
 
         WebApplication app = builder.Build();
         await app.Run(args);
     }
+
+    private static void ConfigureLogging(BlinkHttp.Logging.LoggerSettings settings) 
+        => settings.UseConsole()
+                   .UseFile()
+                   .SetConsoleLogFormat("%T %level:\n\t%name => %scope %message")
+                   .EnableColorfulConsole()
+                   .SetFileLogFormat("%D %level [%name] %scope %message")
+                   .EnableFileLogFooter("===");
 
     private static ApplicationConfiguration GetConfiguration()
     {

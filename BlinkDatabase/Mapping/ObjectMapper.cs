@@ -1,15 +1,15 @@
 ﻿using BlinkDatabase.Annotations;
 using BlinkDatabase.Mapping.Exceptions;
-using BlinkDatabase.PostgreSql;
+using BlinkDatabase.Processing;
 using System.Reflection;
 
 namespace BlinkDatabase.Mapping;
 
 internal class ObjectMapper<T> where T : class, new()
 {
-    private readonly PostgreSqlRepository<T> repo;
+    private readonly SqlMapper<T> repo;
 
-    public ObjectMapper(PostgreSqlRepository<T> repo)
+    public ObjectMapper(SqlMapper<T> repo)
     {
         this.repo = repo;
     }
@@ -109,6 +109,6 @@ internal class ObjectMapper<T> where T : class, new()
     private static object? TryGetEnum(ObjectProperty prop, FieldFromDatabase obj)
     {
         EnumAttribute? enumAttribute = prop.StoredType.GetCustomAttribute<EnumAttribute>();
-        return enumAttribute != null && enumAttribute.EnumName == obj.PgsqlType ? (Enum.TryParse(prop.StoredType, obj.Value.ToString(), true, out object? result) ? result : null) : null;
+        return enumAttribute != null && enumAttribute.EnumName == obj.SqlType ? (Enum.TryParse(prop.StoredType, obj.Value.ToString(), true, out object? result) ? result : null) : null;
     }
 }

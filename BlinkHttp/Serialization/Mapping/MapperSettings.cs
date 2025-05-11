@@ -2,10 +2,12 @@
 
 internal class MapperSettings
 {
-    internal IEqualityComparer<string> NamesComparer { get; set; }
+    internal IEqualityComparer<string> NamesComparer { get; }
 
-    internal static MapperSettings Default => new MapperSettings()
+    public MapperSettings(IEqualityComparer<string> namesComparer)
     {
-        NamesComparer = new NamesComparer()
-    };
+        NamesComparer = namesComparer;
+    }
+
+    internal static MapperSettings Default => new MapperSettings(new NamesComparer());
 }

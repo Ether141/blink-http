@@ -1,8 +1,12 @@
-﻿namespace BlinkHttp.Routing;
+﻿using System.Reflection;
+
+namespace BlinkHttp.Routing;
 
 internal class Route
 {
     internal string Path { get; }
+    internal string? QueryString { get; }
+    internal string PathWithQuery => Path + QueryString;
     internal Http.HttpMethod HttpMethod { get; }
 
     internal ControllerRoute AssociatedRoute { get; private set; }
@@ -10,16 +14,13 @@ internal class Route
 
     internal bool HasRouteParameters => Path.Split('/', StringSplitOptions.RemoveEmptyEntries).Any(RouteUrlUtility.IsRouteParameter);
 
-    internal Route(string path, Http.HttpMethod httpMethod)
+    internal Route(string path, Http.HttpMethod httpMethod, ControllerRoute associatedRoute, MethodInfo endpointMethodInfo)
     {
-        Path = path;
+        Path = RouteUrlUtility.RemoveQuery(path);
+        QueryString = RouteUrlUtility.GetQuery(path);
         HttpMethod = httpMethod;
-    }
-
-    internal void CreateEndpoint(ControllerRoute associatedRoute, IEndpointMethod endpointMethod)
-    {
         AssociatedRoute = associatedRoute;
-        Endpoint = new ControllerEndpoint(HttpMethod, associatedRoute.ControllerType, endpointMethod);
+        Endpoint = new ControllerEndpoint(HttpMethod, associatedRoute.ControllerType, endpointMethodInfo);
     }
 
     internal bool CanRoute(string route)
@@ -46,5 +47,15 @@ internal class Route
         return true;
     }
 
-    public override string? ToString() => $"[{HttpMethod}] {Path}";
+    internal bool CanRoute(string route, Http.HttpMethod httpMethod)
+    {
+        if (HttpMethod != httpMethod)
+        {
+            return false;
+        }
+
+        return CanRoute(route);
+    }
+
+    public override string? ToString() => $"[{HttpMethod}] {Path} {QueryString}";
 }

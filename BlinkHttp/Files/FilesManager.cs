@@ -4,7 +4,7 @@ namespace BlinkHttp.Files;
 
 internal static class FilesManager
 {
-    internal static string WebFolderPath => HttpServer.WebFolderPath;
+    internal static string WebFolderPath => Path.Combine(Path.GetDirectoryName(Environment.ProcessPath!)!, "web");
 
     internal static bool FileExists(Uri url) => File.Exists(GetLocalPathFile(url));
 

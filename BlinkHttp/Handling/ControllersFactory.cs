@@ -14,9 +14,9 @@ internal class ControllersFactory
         this.services = services;
     }
 
-    internal Controller? CreateController(Type type, ControllerContext context)
+    internal Controller? CreateController(Type type, HttpContext context)
     {
-        Controller? controller = null;
+        Controller? controller;
 
         try
         {

@@ -2,33 +2,38 @@
 using BlinkHttp.Http;
 using System.Reflection;
 
-namespace BlinkHttp.Routing
+namespace BlinkHttp.Routing;
+
+internal sealed class ControllerEndpoint : IEndpoint
 {
-    internal sealed class ControllerEndpoint : IEndpoint
+    public Http.HttpMethod HttpMethod { get; }
+    public MethodInfo MethodInfo { get; }
+    public bool MethodHasParameters { get; }
+    public bool IsSecure { get; }
+    public bool IsAwaitable { get; }
+    public AuthenticationRules? AuthenticationRules { get; }
+    internal Type ControllerType { get; }
+
+    public ControllerEndpoint(Http.HttpMethod httpMethod, Type controllerType, MethodInfo methodInfo)
     {
-        public Http.HttpMethod HttpMethod { get; }
-        public IEndpointMethod Method { get; }
-        public bool IsSecure { get; }
-        public AuthenticationRules? AuthenticationRules { get; }
-        internal Type ControllerType { get; }
+        HttpMethod = httpMethod;
+        ControllerType = controllerType;
+        MethodInfo = methodInfo;
 
-        public ControllerEndpoint(Http.HttpMethod httpMethod, Type controllerType, IEndpointMethod method)
+        AuthorizeAttribute? attr = MethodInfo.GetCustomAttribute<AuthorizeAttribute>() ?? controllerType.GetCustomAttribute<AuthorizeAttribute>();
+
+        IsAwaitable = MethodInfo.ReturnType.GetMethod(nameof(Task.GetAwaiter)) != null;
+        IsSecure = MethodInfo.GetCustomAttribute<AllowAnonymousAttribute>() == null && attr != null;
+        MethodHasParameters = MethodInfo.GetParameters().Length > 0;
+
+        if (IsSecure)
         {
-            HttpMethod = httpMethod;
-            ControllerType = controllerType;
-            Method = method;
-
-            AuthorizeAttribute? attr = method.MethodInfo.GetCustomAttribute<AuthorizeAttribute>() ?? controllerType.GetCustomAttribute<AuthorizeAttribute>();
-            IsSecure = attr != null;
-
-            if (IsSecure)
-            {
-                AuthenticationRules = attr!.AuthenticationRules;
-            }
+            AuthenticationRules = attr!.AuthenticationRules;
         }
-
-        public IHttpResult? InvokeEndpoint(Controller controller, object?[]? args) => Method.Invoke(controller, args) as IHttpResult;
-
-        public override string? ToString() => $"[{HttpMethod}] {Method}";
     }
+
+    public object? InvokeEndpoint(Controller controller, object?[]? args) => 
+        IsAwaitable ? MethodInfo.Invoke(controller, args) as Task<IHttpResult> : MethodInfo.Invoke(controller, args) as IHttpResult;
+
+    public override string? ToString() => $"[{HttpMethod}] {MethodInfo.Name}";
 }

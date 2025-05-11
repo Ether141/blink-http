@@ -1,5 +1,7 @@
 ﻿using BlinkDatabase.General;
+using BlinkHttp.Background;
 using BlinkHttp.Handling;
+using BlinkHttp.Logging;
 using System.Reflection;
 
 namespace BlinkHttp.DependencyInjection;
@@ -14,6 +16,7 @@ internal class Installator
 
     internal List<Type> Middlewares { get; } = [];
     internal List<IMiddleware> MiddlewareInstances { get; } = [];
+    internal List<(IBackgroundService service, bool autoStart)> BackgroundServices { get; } = [];
 
     internal T InstantiateClass<T>() where T : class => (T)InstantiateClass(typeof(T));
 
@@ -61,6 +64,12 @@ internal class Installator
                 continue;
             }
 
+            if (IsLogger(parameter.ParameterType))
+            {
+                args[i] = GetLogger(type);
+                continue;
+            }
+
             Type? implementationType = Singletons.FirstOrDefault(s => s.Key == parameter.ParameterType).Value;
 
             if (implementationType != null && implementationType == type)
@@ -87,8 +96,8 @@ internal class Installator
         return Activator.CreateInstance(type, args)!;
     }
 
-    internal MiddlewareHandler ResolveMiddlewareHandler() =>
-        new MiddlewareHandler(Middlewares.Select(m => MiddlewareInstances.FirstOrDefault(i => i.GetType() == m) ?? InstantiateClass(m)).Cast<IMiddleware>());
+    internal IMiddleware[] ResolveMiddlewares() =>
+        Middlewares.Select(m => MiddlewareInstances.FirstOrDefault(i => i.GetType() == m) ?? InstantiateClass(m)).Cast<IMiddleware>().ToArray();
 
     private object GetSingleton(Type implementationType)
     {
@@ -118,4 +127,8 @@ internal class Installator
     }
 
     private bool IsRepository(Type type) => type.IsGenericType && type.GetGenericTypeDefinition() == typeof(IRepository<>);
+
+    private object GetLogger(Type type) => LoggerFactory.Create(type);
+
+    private bool IsLogger(Type type) => type == typeof(ILogger);
 }

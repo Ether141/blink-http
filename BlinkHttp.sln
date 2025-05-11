@@ -3,13 +3,15 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.13.35825.156
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Logging", "Logging\Logging.csproj", "{7F53268B-64F9-039B-D8EC-45C529A3A1F9}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlinkHttp", "BlinkHttp\BlinkHttp.csproj", "{921261D7-B9A2-22D4-1E7B-51AC41BA4CB4}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MyApplication", "MyApplication\MyApplication.csproj", "{04F55E3C-C693-A3F0-AF0C-DB7EDABDCF28}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlinkDatabase", "BlinkDatabase\BlinkDatabase.csproj", "{FF9B7BAB-D0EC-4144-ABE4-580773894269}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlinkDatabase.PostgreSql", "BlinkDatabase.PostgreSql\BlinkDatabase.PostgreSql.csproj", "{D601992A-C654-4BAF-BFB1-9D7AB2562BC1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlinkHttp.Logging", "BlinkHttp.Logging\BlinkHttp.Logging.csproj", "{86FC5889-8127-427F-A278-6F2CF1EBD540}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -17,10 +19,6 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{7F53268B-64F9-039B-D8EC-45C529A3A1F9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{7F53268B-64F9-039B-D8EC-45C529A3A1F9}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{7F53268B-64F9-039B-D8EC-45C529A3A1F9}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{7F53268B-64F9-039B-D8EC-45C529A3A1F9}.Release|Any CPU.Build.0 = Release|Any CPU
 		{921261D7-B9A2-22D4-1E7B-51AC41BA4CB4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{921261D7-B9A2-22D4-1E7B-51AC41BA4CB4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{921261D7-B9A2-22D4-1E7B-51AC41BA4CB4}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -33,6 +31,14 @@ Global
 		{FF9B7BAB-D0EC-4144-ABE4-580773894269}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FF9B7BAB-D0EC-4144-ABE4-580773894269}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FF9B7BAB-D0EC-4144-ABE4-580773894269}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D601992A-C654-4BAF-BFB1-9D7AB2562BC1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D601992A-C654-4BAF-BFB1-9D7AB2562BC1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D601992A-C654-4BAF-BFB1-9D7AB2562BC1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D601992A-C654-4BAF-BFB1-9D7AB2562BC1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{86FC5889-8127-427F-A278-6F2CF1EBD540}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{86FC5889-8127-427F-A278-6F2CF1EBD540}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{86FC5889-8127-427F-A278-6F2CF1EBD540}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{86FC5889-8127-427F-A278-6F2CF1EBD540}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

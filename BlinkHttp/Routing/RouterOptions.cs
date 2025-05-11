@@ -9,4 +9,6 @@ internal class RouterOptions
         get => routePrefix;
         set => routePrefix = value == null ? value : value.Trim('/', '\\');
     }
+
+    internal Type[]? IgnoredControllerTypes { get; set; }
 }

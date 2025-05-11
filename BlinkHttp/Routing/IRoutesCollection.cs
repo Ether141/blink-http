@@ -1,12 +1,14 @@
-﻿namespace BlinkHttp.Routing
-{
-    internal interface IRoutesCollection
-    {
-        IReadOnlyList<Route> Routes { get; }
-        string Path { get; }
+﻿using System.Reflection;
 
-        void AddRoute(string path, Http.HttpMethod httpMethod, IEndpointMethod method);
-        bool RouteExists(string path);
-        Route? GetRoute(string path);
-    }
+namespace BlinkHttp.Routing;
+
+internal interface IRoutesCollection
+{
+    IReadOnlyList<Route> Routes { get; }
+    string ControllerPath { get; }
+
+    void AddRoute(string path, Http.HttpMethod httpMethod, MethodInfo method);
+    bool RouteExists(string path, Http.HttpMethod method);
+    Route? GetRoute(string path, Http.HttpMethod method);
+    Route? GetRoute(string path);
 }

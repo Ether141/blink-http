@@ -10,8 +10,8 @@ public class ModelValidator
 {
     private readonly Dictionary<string, List<string>> errors = [];
 
-    private PropertyInfo currentProperty;
-    private object currentModel;
+    private PropertyInfo? currentProperty;
+    private object? currentModel;
 
     /// <summary>
     /// Validates given model instance and returns <seealso cref="ValidationResult"/>.
@@ -34,18 +34,18 @@ public class ModelValidator
     private void HandleValidation()
     {
         string? msg = null;
-        IEnumerable<ValidationAttribute> attributes = currentProperty.GetCustomAttributes<ValidationAttribute>();
+        IEnumerable<ValidationAttribute> attributes = currentProperty!.GetCustomAttributes<ValidationAttribute>();
 
         foreach (ValidationAttribute attribute in attributes)
         {
-            msg = attribute.ValidateAndGetErrorMessage(currentProperty.GetValue(currentModel));
+            msg = attribute.ValidateAndGetErrorMessage(currentProperty!.GetValue(currentModel));
             AddError(ref msg);
         }
     }
 
     private void AddError(ref string? msg)
     {
-        string propName = NamesComparer.NormalizeName(currentProperty.Name, "_")!;
+        string propName = NamesComparer.NormalizeName(currentProperty!.Name, "_")!;
 
         if (msg != null)
         {

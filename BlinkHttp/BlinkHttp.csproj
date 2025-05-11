@@ -10,7 +10,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\BlinkDatabase\BlinkDatabase.csproj" />
-    <ProjectReference Include="..\Logging\Logging.csproj" />
+    <ProjectReference Include="..\BlinkHttp.Logging\BlinkHttp.Logging.csproj" />
   </ItemGroup>
 
 </Project>

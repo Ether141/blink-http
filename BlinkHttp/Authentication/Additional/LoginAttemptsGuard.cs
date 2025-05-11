@@ -12,6 +12,15 @@ public class LoginAttemptsGuard
     private int attemptCooldown;
     private int attemptLimit;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="LoginAttemptsGuard"/> class.
+    /// </summary>
+    /// <param name="attemptCooldown">
+    /// The cooldown period (in seconds) during which failed login attempts are tracked.
+    /// </param>
+    /// <param name="attemptLimit">
+    /// The maximum number of failed login attempts allowed before blocking further attempts.
+    /// </param>
     public LoginAttemptsGuard(int attemptCooldown, int attemptLimit)
     {
         this.attemptCooldown = attemptCooldown;

@@ -1,9 +1,9 @@
-﻿using System.Net;
+﻿using BlinkHttp.Http;
 
 namespace BlinkHttp.Authentication;
 
 /// <summary>
-/// Provides authorization functionality of <seealso cref="HttpListenerRequest"/> for secured resource.
+/// Provides authorization functionality of <seealso cref="HttpRequest"/> for secured resource.
 /// </summary>
 public interface IAuthorizer
 {
@@ -13,7 +13,7 @@ public interface IAuthorizer
     IUserInfoProvider UserInfoProvider { get; }
 
     /// <summary>
-    /// Attempts to authorize given <seealso cref="HttpListenerRequest"/>. Also optionally checks user priviliges, based on given <seealso cref="AuthenticationRules"/> if provided.
+    /// Attempts to authorize given <seealso cref="HttpRequest"/>. Also optionally checks user priviliges, based on given <seealso cref="AuthenticationRules"/> if provided.
     /// </summary>
-    AuthorizationResult Authorize(HttpListenerRequest request, AuthenticationRules? rules);
+    AuthorizationResult Authorize(HttpRequest request, AuthenticationRules? rules);
 }

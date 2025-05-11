@@ -1,11 +1,13 @@
-﻿using BlinkHttp.Authentication.Session;
-using BlinkHttp.Authentication;
+﻿using BlinkHttp.Authentication;
+using BlinkHttp.Authentication.Session;
+using BlinkHttp.Background;
 using BlinkHttp.Configuration;
-using Logging;
-using BlinkDatabase.General;
 using BlinkHttp.DependencyInjection;
-using BlinkDatabase.PostgreSql;
 using BlinkHttp.Http;
+using BlinkHttp.Logging;
+using BlinkHttp.Server;
+using BlinkHttp.Server.Default;
+using BlinkHttp.Swagger;
 
 namespace BlinkHttp.Application;
 
@@ -16,9 +18,12 @@ public class WebApplicationBuilder
 {
     private IConfiguration? configuration;
     private string[]? prefixes;
-    private string? startMessage;
     private IAuthorizer? authorizer;
     private string? routePrefix;
+    private Func<IServer>? serverProvider;
+    private CorsOptions? corsOptions;
+    private bool useSwagger = false;
+    private BackgroundServicesManager? backgroundServicesManager;
 
     /// <summary>
     /// Allows to define services for dependency injection, which will be used across application.
@@ -40,15 +45,6 @@ public class WebApplicationBuilder
     public WebApplicationBuilder AddPrefix(params string[] prefixes)
     {
         this.prefixes = prefixes;
-        return this;
-    }
-
-    /// <summary>
-    /// Sets start message, which will be displayed in logs, when server is started.
-    /// </summary>
-    public WebApplicationBuilder SetStartMessage(string startMessage)
-    {
-        this.startMessage = startMessage;
         return this;
     }
 
@@ -84,7 +80,9 @@ public class WebApplicationBuilder
     /// </summary>
     public WebApplicationBuilder ConfigureLogging(Action<LoggerSettings> settings)
     {
-        Logger.Configure(settings);
+        LoggerSettings sett = new LoggerSettings();
+        settings.Invoke(sett);
+        LoggerFactory.CreateFactory(sett);
         return this;
     }
 
@@ -98,47 +96,73 @@ public class WebApplicationBuilder
     }
 
     /// <summary>
-    /// Adds Cross-Origin Resource Sharing (CORS) support to the application. By default, all headers and origins are accepted.
+    /// Adds Cross-Origin Resource Sharing (CORS) support to the application for all endpoints. By default, all headers, methods and origins are accepted and credentials are disabled.
     /// </summary>
-    public WebApplicationBuilder AddCORS() => AddCORS(opt => { });
+    public WebApplicationBuilder AddGlobalCORS() => AddGlobalCORS(opt => { });
 
     /// <summary>
-    /// Adds Cross-Origin Resource Sharing (CORS) support to the application, with the specified CORS options.
+    /// Adds Cross-Origin Resource Sharing (CORS) support to the application for all endpoints, with the specified CORS options.
     /// </summary>
-    public WebApplicationBuilder AddCORS(Action<CorsOptions> opt)
+    public WebApplicationBuilder AddGlobalCORS(Action<CorsOptions> opt)
     {
-        if (Services.Installator.Middlewares.Any(m => m.GetType() == typeof(CorsMiddleware)))
-        {
-            return this;
-        }
+        corsOptions = new CorsOptions();
+        opt.Invoke(corsOptions);
+        return this;
+    }
 
-        CorsOptions options = new CorsOptions();
-        opt.Invoke(options);
-        Services.Installator.Middlewares.Insert(0, typeof(CorsMiddleware));
-        Services.Installator.MiddlewareInstances.Insert(0, new CorsMiddleware(options));
+    /// <summary>
+    /// Configures Swagger documentation for the application with the specified title and version.
+    /// </summary>
+    public WebApplicationBuilder ConfigureSwagger(string title, string version) => ConfigureSwagger(title, version, []);
+
+    /// <summary>
+    /// Configures Swagger documentation for the application with the specified title and version, and optional metadata for selected endpoints.
+    /// </summary>
+    public WebApplicationBuilder ConfigureSwagger(string title, string version, params EndpointMetadata[] metadata)
+    {
+        SwaggerUI ui = new SwaggerUI("api/docs/swagger.json", title, version, metadata);
+        Services.AddSingleton<SwaggerUI>(ui);
+        useSwagger = true;
         return this;
     }
 
     /// <summary>
     /// Builds new instance of <seealso cref="WebApplication"/> and configure its features.
     /// </summary>
-    public WebApplication Build()
-    {
-        WebApplication app = new WebApplication
-        {
-            Configuration = configuration,
-            Authorizer = authorizer,
-            RoutePrefix = routePrefix,
-            Prefixes = prefixes,
-            DependencyInjector = Services
-        };
+    public WebApplication Build() =>
+        new WebApplication((serverProvider ?? GetDefaultServer).Invoke(),
+                           Services,
+                           authorizer,
+                           configuration,
+                           Services.Installator.ResolveMiddlewares(),
+                           routePrefix,
+                           corsOptions,
+                           useSwagger,
+                           GetBackgroundServicesManager());
 
-        if (startMessage != null)
+    private BackgroundServicesManager? GetBackgroundServicesManager()
+    {
+        if (Services.Installator.BackgroundServices.Count > 0)
         {
-            app.StartMessage = startMessage;
+            backgroundServicesManager = new BackgroundServicesManager(Services.Installator.BackgroundServices);
+            Services.AddSingleton<IBackgroundServices, BackgroundServicesManager>(backgroundServicesManager);
         }
 
-        return app;
+        return backgroundServicesManager;
+    }
+
+    private IServer GetDefaultServer()
+    {
+        if (prefixes == null && configuration != null)
+        {
+            prefixes = configuration.GetArray("server:prefixes") ?? throw new ArgumentNullException("server:prefix options cannot be found in the configuration file.");
+        }
+        else
+        {
+            throw new NullReferenceException("Configuration is not provided.");
+        }
+
+        return new SimpleServer(prefixes);
     }
 
     private static SessionManager GetSessionManager(IUserInfoProvider userInfoProvider, SessionOptions? opt)
