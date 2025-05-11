@@ -8,7 +8,6 @@ using BlinkHttp.Logging;
 using BlinkHttp.Routing;
 using BlinkHttp.Server;
 using BlinkHttp.Swagger;
-using BlinkHttp.Logging;
 
 namespace BlinkHttp.Application;
 

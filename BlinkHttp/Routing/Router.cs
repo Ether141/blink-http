@@ -26,16 +26,6 @@ internal class Router : IRouter
         routes ??= [];
         InitializeControllers();
         InitializeEndpoints();
-
-        foreach (var route in routes)
-        {
-            Console.WriteLine(route);
-
-            foreach (var routee in route.Routes)
-            {
-                Console.WriteLine($"\t{routee}");
-            }
-        }
     }
 
     public Route? GetRoute(string url, Http.HttpMethod httpMethod)

@@ -20,7 +20,7 @@ internal class SimpleServer : IServer
 
     internal SimpleServer(params string[] prefixes)
     {
-        logger.Debug("Initializing simple HTTP server (System.Net.HttpListener)");
+        logger.Info("Initializing simple HTTP server (System.Net.HttpListener)");
 
         listener = new HttpListener();
 
@@ -29,14 +29,14 @@ internal class SimpleServer : IServer
             listener.Prefixes.Add(prefix);
         }
 
-        logger.Debug($"Prefixes: {string.Join(", ", prefixes)}");
+        logger.Info($"Prefixes: {string.Join(", ", prefixes)}");
         cts = new CancellationTokenSource();
     }
 
     public async Task StartAsync()
     {
         listener.Start();
-        logger.Debug("HTTP server is up and running.");
+        logger.Info("HTTP server is up and running.");
 
         try
         {
@@ -63,7 +63,7 @@ internal class SimpleServer : IServer
         finally
         {
             listener.Stop();
-            logger.Debug("HTTP server has been stopped.");
+            logger.Info("HTTP server has been stopped.");
         }
     }
 
