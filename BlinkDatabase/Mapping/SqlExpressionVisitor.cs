@@ -11,6 +11,14 @@ public class SqlExpressionVisitor<T> : ExpressionVisitor where T : class, new()
     private Type? enumType;
 
     public string Condition => builder.ToString();
+    public bool SkipRelations { get; }
+
+    public SqlExpressionVisitor() : this(false) { }
+
+    public SqlExpressionVisitor(bool skipRelations)
+    {
+        SkipRelations = skipRelations;
+    }
 
     protected override Expression VisitBinary(BinaryExpression node)
     {
@@ -23,12 +31,12 @@ public class SqlExpressionVisitor<T> : ExpressionVisitor where T : class, new()
     protected override Expression VisitMember(MemberExpression node)
     {
         (string? tableName, string? columnName) = GetTableAndColumnNames(node);
-        
+
         if (tableName == null || columnName == null)
         {
             object value = Expression.Lambda<Func<object>>(Expression.Convert(node, typeof(object))).Compile().Invoke();
             builder.Append(value.GetType() == typeof(string) ? $"'{value}'" : value);
-        } 
+        }
         else if (node.Member.DeclaringType == typeof(DateTime))
         {
             builder.Append(GetQueryForDate(node, tableName, columnName));
@@ -61,6 +69,11 @@ public class SqlExpressionVisitor<T> : ExpressionVisitor where T : class, new()
 
         while (tableDefiner.Expression is MemberExpression mem)
         {
+            if (SkipRelations && mem.Member.GetCustomAttribute<ColumnAttribute>() != null)
+            {
+                return (mem.Member.DeclaringType!.GetCustomAttribute<TableAttribute>()!.TableName, mem.Member.GetCustomAttribute<ColumnAttribute>()!.ColumnName);
+            }
+
             if (tableDefiner.Member.GetCustomAttribute<ColumnAttribute>() != null && columnName == null)
             {
                 columnMember = tableDefiner.Member;
@@ -73,7 +86,7 @@ public class SqlExpressionVisitor<T> : ExpressionVisitor where T : class, new()
                 break;
             }
         }
-        
+
         if (tableDefiner.Member is not PropertyInfo propertyInfo || (propertyInfo.PropertyType.GetCustomAttribute<TableAttribute>() == null && propertyInfo.DeclaringType!.GetCustomAttribute<TableAttribute>() == null))
         {
             return (null, null);
