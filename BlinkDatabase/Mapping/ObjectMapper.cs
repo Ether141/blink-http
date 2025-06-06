@@ -109,6 +109,6 @@ internal class ObjectMapper<T> where T : class, new()
     private static object? TryGetEnum(ObjectProperty prop, FieldFromDatabase obj)
     {
         EnumAttribute? enumAttribute = prop.StoredType.GetCustomAttribute<EnumAttribute>();
-        return enumAttribute != null && enumAttribute.EnumName == obj.SqlType ? (Enum.TryParse(prop.StoredType, obj.Value.ToString(), true, out object? result) ? result : null) : null;
+        return enumAttribute != null && enumAttribute.EnumName == obj.SqlType ? EnumMapper.TryMap(prop.StoredType, obj.Value.ToString()) : null;
     }
 }
