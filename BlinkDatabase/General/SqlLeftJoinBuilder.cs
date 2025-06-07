@@ -41,14 +41,11 @@ internal static class SqlLeftJoinBuilder
 
                 (string? nextLeftJoin, string? nextFieldNames) = LeftJoin(relationProperty.StoredType, type);
 
-                if (leftJoin != null)
-                {
-                    leftJoin += " " + nextLeftJoin;
-                    fieldNames += ", " + nextFieldNames;
-                }
+                leftJoin += " " + nextLeftJoin;
+                fieldNames += ", " + nextFieldNames;
             }
         }
 
-        return (leftJoin, fieldNames?.Trim().Trim(','));
+        return (leftJoin, fieldNames);
     }
 }

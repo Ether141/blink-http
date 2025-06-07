@@ -1,6 +1,7 @@
 ﻿using BlinkDatabase.Annotations;
 using BlinkDatabase.Mapping;
 using System.Linq.Expressions;
+using System.Text;
 
 namespace BlinkDatabase.General;
 
@@ -24,11 +25,6 @@ internal class SqlSelectBuilder
         string tableName = TableAttribute.GetTableName<T>();
         (string? leftJoin, string? leftJoinValues) = SqlLeftJoinBuilder.LeftJoin<T>();
 
-        if (leftJoin != null)
-        {
-            leftJoin = " " + leftJoin;
-        }
-
         if (whereQuery != null)
         {
             whereQuery = " " + whereQuery;
@@ -45,7 +41,7 @@ internal class SqlSelectBuilder
 
         if (leftJoinValues != null)
         {
-            columnNames += leftJoinValues;
+            columnNames += leftJoinValues[..^2];
         }
         else
         {
@@ -54,6 +50,38 @@ internal class SqlSelectBuilder
 
         ObjectProperty idProperty = properties.First(p => p.IsId);
 
+        if (leftJoin != null)
+        {
+            leftJoin = OptimizeLeftJoin(leftJoin);
+            leftJoin = " " + leftJoin;
+        }
+
+        columnNames = OptimizeColumnNames(columnNames);
+
         return $"SELECT {columnNames} FROM \"{tableName}\"" + (leftJoin ?? "") + (whereQuery ?? "");
+    }
+
+    private static string OptimizeColumnNames(string columnNames) => string.Join(", ", columnNames.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToHashSet());
+
+    private static string OptimizeLeftJoin(string leftJoin)
+    {
+        List<string> parts = leftJoin.Split("LEFT JOIN", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).Select(p => $"LEFT JOIN {p}").ToList();
+        List<string> tableNames = [];
+        StringBuilder builder = new StringBuilder();
+
+        foreach (string p in parts)
+        {
+            string tableName = p[10..(p.IndexOf('"', 11) + 1)];
+
+            if (tableNames.Contains(tableName))
+            {
+                continue;
+            }
+
+            tableNames.Add(tableName);
+            builder.Append(p + " ");
+        }
+
+        return builder.ToString()[..^1];
     }
 }
