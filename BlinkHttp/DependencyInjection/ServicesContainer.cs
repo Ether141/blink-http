@@ -11,7 +11,9 @@ namespace BlinkHttp.DependencyInjection;
 /// </summary>
 public class ServicesContainer
 {
-    internal Installator Installator { get; } = new Installator();
+    private static Installator installator = new Installator();
+
+    internal Installator Installator => installator;
 
     internal ServicesContainer() { }
 
@@ -157,4 +159,9 @@ public class ServicesContainer
 
         return this;
     }
+
+    /// <summary>
+    /// Creates new instance of <seealso cref="IRepository{T}"/> for given <typeparamref name="T"/> model. Make sure database is configured and <typeparamref name="T"/> is corrent model type.
+    /// </summary>
+    public static IRepository<T> GetRepository<T>() where T : class, new() => (IRepository<T>)installator.GetRepository(typeof(IRepository<T>));
 }

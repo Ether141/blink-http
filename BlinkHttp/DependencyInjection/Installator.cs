@@ -113,7 +113,7 @@ internal class Installator
 
     private object GetScoped(Type implementationType) => InstantiateClass(implementationType);
 
-    private object GetRepository(Type type)
+    internal object GetRepository(Type type)
     {
         if (RepositoryType == null)
         {
