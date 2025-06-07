@@ -82,6 +82,7 @@ internal class ObjectMapper<T> where T : class, new()
     {
         Type constructedListType = typeof(List<>).MakeGenericType(prop.StoredType);
         System.Collections.IList objectsFromRelation = (System.Collections.IList)Activator.CreateInstance(constructedListType)!;
+        List<object> ids = new List<object>();
 
         List<ObjectFromDatabase> db = [.. repo.CurrentObjects.Where(o => o.Fields.Any(f => f.FullName == prop.FullName && f.Value.ToString() == fieldFromDb.Value.ToString()))];
 
@@ -91,7 +92,13 @@ internal class ObjectMapper<T> where T : class, new()
 
             if (o != null)
             {
-                objectsFromRelation.Add(o); 
+                object id = ObjectProperty.GetIdProperty(prop.StoredType).Get(o)!;
+                
+                if (!ids.Any(i => Equals(i, id)))
+                {
+                    objectsFromRelation.Add(o);
+                    ids.Add(id);
+                }
             }
         }
 
