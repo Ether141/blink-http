@@ -1,5 +1,6 @@
 ﻿using BlinkHttp.Http;
 using System.Reflection;
+using System.Text;
 
 namespace BlinkHttp.Serialization.Mapping;
 
@@ -257,17 +258,37 @@ internal class RequestBodyMapper
         try
         {
             System.Collections.IList list = (System.Collections.IList)Activator.CreateInstance(typeof(List<>).MakeGenericType(elementType))!;
+            JsonDataParser jsonDataParser = new JsonDataParser();
 
             foreach (string value in matchedValue.Values!)
             {
-                object? converted = ChangeType(value, elementType);
-
-                if (converted == null)
+                if (value.Trim().StartsWith('{'))
                 {
-                    return null;
-                }
+                    Stream stream = new MemoryStream(Encoding.UTF8.GetBytes(value));
+                    RequestContent content = new RequestContent("application/json", value.Length, stream, Encoding.UTF8);
 
-                list.Add(converted);
+                    RequestValue[] values = jsonDataParser.Parse(content);
+                    RequestBodyMapper mapper = new RequestBodyMapper(values);
+                    object? converted = mapper.Map(elementType, parameterName);
+
+                    if (converted == null)
+                    {
+                        return null;
+                    }
+
+                    list.Add(converted);
+                }
+                else
+                {
+                    object? converted = ChangeType(value, elementType);
+
+                    if (converted == null)
+                    {
+                        return null;
+                    }
+
+                    list.Add(converted);
+                }
             }
 
             if (type.IsArray || type.GetGenericTypeDefinition() == typeof(IEnumerable<>))
