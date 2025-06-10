@@ -10,7 +10,9 @@ internal class CorsHandler : IMiddleware
 
     private readonly CorsOptions? options;
 
+#pragma warning disable CS8618
     internal CorsHandler(CorsOptions? options)
+#pragma warning restore CS8618
     {
         this.options = options;
     }

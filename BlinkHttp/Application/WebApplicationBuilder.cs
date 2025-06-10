@@ -20,7 +20,9 @@ public class WebApplicationBuilder
     private string[]? prefixes;
     private IAuthorizer? authorizer;
     private string? routePrefix;
+#pragma warning disable CS0649
     private Func<IServer>? serverProvider;
+#pragma warning restore CS0649
     private CorsOptions? corsOptions;
     private bool useSwagger = false;
     private BackgroundServicesManager? backgroundServicesManager;

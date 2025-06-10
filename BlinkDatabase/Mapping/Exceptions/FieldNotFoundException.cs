@@ -1,5 +1,10 @@
-﻿namespace BlinkDatabase.Mapping.Exceptions;
+﻿#pragma warning disable CS1591
 
+namespace BlinkDatabase.Mapping.Exceptions;
+
+/// <summary>
+/// The exception which is thrown when the field from the database cannot be found.
+/// </summary>
 [Serializable]
 public class FieldNotFoundException : Exception
 {

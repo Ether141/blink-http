@@ -1,4 +1,6 @@
-﻿namespace BlinkHttp.Validation;
+﻿#pragma warning disable CS1591
+
+namespace BlinkHttp.Validation;
 
 /// <summary>
 /// Ensures that the specified number of years have passed since the date value.
@@ -8,11 +10,17 @@ public sealed class DateOfBirthAttribute : ValidationAttribute
 {
     public int MinAge { get; }
 
+    /// <summary>
+    /// Creates new instance of <seealso cref="DateOfBirthAttribute"/> with given minimal age, and default error message.
+    /// </summary>
     public DateOfBirthAttribute(int minAge) : base($"Date does not meet minimum age requirements ({minAge}).")
     {
         MinAge = minAge;
     }
 
+    /// <summary>
+    /// Creates new instance of <seealso cref="DateOfBirthAttribute"/> with given minimal age, and custom error message.
+    /// </summary>
     public DateOfBirthAttribute(int minAge, string errorMessage) : base(errorMessage)
     {
         MinAge = minAge;

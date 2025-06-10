@@ -1,4 +1,6 @@
-﻿namespace BlinkHttp.Validation;
+﻿#pragma warning disable CS1591
+
+namespace BlinkHttp.Validation;
 
 /// <summary>
 /// Encapsulates result of model validation process and error messages in case of invalid model.

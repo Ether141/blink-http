@@ -1,13 +1,21 @@
 ﻿namespace BlinkDatabase.Mapping.Exceptions;
 
-
+/// <summary>
+/// The exception which is thrown when data from the database has different type than property of the model.
+/// </summary>
 [Serializable]
 public class PropertyTypeMismatchException : Exception
 {
+	/// <summary>
+	/// Creates new instance of <seealso cref="PropertyTypeMismatchException"/>.
+	/// </summary>
 	public PropertyTypeMismatchException(string columnName, string propertyName, Type columnType, Type propertyType) 
 		: base(GetMessage(columnName, propertyName, columnType, propertyType)) { }
 
-	public PropertyTypeMismatchException(string columnName, string propertyName, Type columnType, Type propertyType, Exception inner) 
+    /// <summary>
+    /// Creates new instance of <seealso cref="PropertyTypeMismatchException"/>.
+    /// </summary>
+    public PropertyTypeMismatchException(string columnName, string propertyName, Type columnType, Type propertyType, Exception inner) 
 		: base(GetMessage(columnName, propertyName, columnType, propertyType), inner) { }
 
 	private static string GetMessage(string columnName, string propertyName, Type columnType, Type propertyType) =>

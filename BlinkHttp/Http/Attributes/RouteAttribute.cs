@@ -10,6 +10,9 @@ public sealed class RouteAttribute : Attribute
 {
     private readonly string route;
 
+    /// <summary>
+    /// Creates new instance of <seealso cref="RouteAttribute"/>.
+    /// </summary>
     public RouteAttribute(string route)
     {
         this.route = ProcessRouteUrl(route);   

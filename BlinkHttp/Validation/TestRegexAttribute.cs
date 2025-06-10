@@ -1,4 +1,6 @@
-﻿namespace BlinkHttp.Validation;
+﻿#pragma warning disable CS1591
+
+namespace BlinkHttp.Validation;
 
 /// <summary>
 /// Ensures that the string value matches given regular expression.

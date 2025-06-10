@@ -7,13 +7,22 @@
 [AttributeUsage(AttributeTargets.Property, Inherited = false, AllowMultiple = false)]
 public sealed class RelationAttribute : Attribute 
 {
+    /// <summary>
+    /// Name of the column in the database, in foreign table, which fill be used to resolve relation.
+    /// </summary>
     public string ColumnName { get; }
 
+    /// <summary>
+    /// Creates new instance of <seealso cref="RelationAttribute"/> with default column name: id.
+    /// </summary>
     public RelationAttribute()
     {
         ColumnName = "id";
     }
 
+    /// <summary>
+    /// Creates new instance of <seealso cref="RelationAttribute"/> with specified column name in foreign table.
+    /// </summary>
     public RelationAttribute(string columnName)
     {
         ColumnName = columnName;

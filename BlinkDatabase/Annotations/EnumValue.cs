@@ -8,8 +8,14 @@ namespace BlinkDatabase.Annotations;
 [AttributeUsage(AttributeTargets.Field, Inherited = false, AllowMultiple = false)]
 public sealed class EnumValueAttribute : Attribute
 {
+    /// <summary>
+    /// Name of the one enumeration value in the database.
+    /// </summary>
     public string Name { get; }
 
+    /// <summary>
+    /// Creates new instance of <seealso cref="EnumValueAttribute"/> with specified enumeration value name in the database.
+    /// </summary>
     public EnumValueAttribute(string name)
     {
         Name = name;

@@ -14,7 +14,9 @@ internal class Auth : IMiddleware
     private readonly ILogger logger = LoggerFactory.Create<Auth>();
     private readonly IAuthorizer? authorizer;
 
+#pragma warning disable CS8618
     public Auth(IAuthorizer? authorizer)
+#pragma warning restore CS8618
     {
         this.authorizer = authorizer;
     }

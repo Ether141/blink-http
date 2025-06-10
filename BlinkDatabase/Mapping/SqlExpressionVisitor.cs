@@ -1,4 +1,6 @@
-﻿using BlinkDatabase.Annotations;
+﻿#pragma warning disable CS1591
+
+using BlinkDatabase.Annotations;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;

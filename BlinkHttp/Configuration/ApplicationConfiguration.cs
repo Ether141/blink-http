@@ -30,7 +30,10 @@ public class ApplicationConfiguration : IConfiguration
 
     private Dictionary<string, string>? values;
     private readonly ILogger logger = LoggerFactory.Create<ApplicationConfiguration>();
+
+#pragma warning disable CS8618
     private ConfigurationValuesProvider valuesProvider;
+#pragma warning restore CS8618
 
     /// <summary>
     /// Loads configuration file, using <seealso cref="DefaultConfigFilePath"/>.

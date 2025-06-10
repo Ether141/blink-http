@@ -7,7 +7,9 @@ namespace BlinkHttp.Handling.Pipeline;
 
 internal class EndpointHandler : IMiddleware
 {
+#pragma warning disable CS8618
     public MiddlewareDelegate Next { get; set; }
+#pragma warning restore CS8618
 
     private readonly ILogger logger = LoggerFactory.Create<EndpointHandler>();
 

@@ -7,8 +7,14 @@
 [AttributeUsage(AttributeTargets.Property, Inherited = false, AllowMultiple = false)]
 public sealed class ColumnAttribute : Attribute
 {
+    /// <summary>
+    /// Name of the column in the databse.
+    /// </summary>
     public string ColumnName { get; }
 
+    /// <summary>
+    /// Creates new instance of <seealso cref="ColumnAttribute"/> with specified column name in the database.
+    /// </summary>
     public ColumnAttribute(string columnName)
     {
         ColumnName = columnName;

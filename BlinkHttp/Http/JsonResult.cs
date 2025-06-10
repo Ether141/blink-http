@@ -11,6 +11,7 @@ public class JsonResult : IHttpResult
 {
     private readonly string jsonValue;
 
+#pragma warning disable CS1591
     public byte[] Data => Encoding.UTF8.GetBytes(jsonValue);
     public string? ContentType => MimeTypes.ApplicationJson;
     public string? ContentDisposition => null;
@@ -26,6 +27,7 @@ public class JsonResult : IHttpResult
         this.jsonValue = jsonValue;
         HttpCode = httpCode;
     }
+#pragma warning restore CS1591
 
     /// <summary>
     /// Serializes a given <seealso cref="object"/> and initializes new instance of <seealso cref="JsonResult"/> with this serialized object.

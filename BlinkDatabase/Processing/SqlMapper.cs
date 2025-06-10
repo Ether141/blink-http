@@ -1,4 +1,6 @@
-﻿using BlinkDatabase.Mapping;
+﻿#pragma warning disable CS1591
+
+using BlinkDatabase.Mapping;
 using System.Data.Common;
 
 namespace BlinkDatabase.Processing;

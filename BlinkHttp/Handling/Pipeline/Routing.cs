@@ -12,7 +12,9 @@ internal class Routing : IMiddleware
     private readonly ILogger logger = LoggerFactory.Create<Routing>();
     private readonly Router router;
 
+#pragma warning disable CS8618
     public Routing(Router router)
+#pragma warning restore CS8618
     {
         this.router = router;
     }

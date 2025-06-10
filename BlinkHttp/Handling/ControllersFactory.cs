@@ -5,7 +5,9 @@ namespace BlinkHttp.Handling;
 
 internal class ControllersFactory
 {
+#pragma warning disable CS8618
     internal static ControllersFactory Factory { get; private set; }
+#pragma warning restore CS8618
 
     private readonly ServicesContainer services;
 

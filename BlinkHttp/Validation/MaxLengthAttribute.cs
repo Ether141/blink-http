@@ -1,4 +1,6 @@
-﻿namespace BlinkHttp.Validation;
+﻿#pragma warning disable CS1591
+
+namespace BlinkHttp.Validation;
 
 /// <summary>
 /// Ensures that length of string value is below given maximal length.

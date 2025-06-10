@@ -9,8 +9,14 @@ namespace BlinkDatabase.Annotations;
 [AttributeUsage(AttributeTargets.Class, Inherited = false, AllowMultiple = false)]
 public sealed class TableAttribute : Attribute
 {
+    /// <summary>
+    /// Name of a table in the database, which will be used to obtain data for model.
+    /// </summary>
     public string TableName { get; }
 
+    /// <summary>
+    /// Creates new instance of <seealso cref="TableAttribute"/> with specified table name.
+    /// </summary>
     public TableAttribute(string tableName)
     {
         TableName = tableName;

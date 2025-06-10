@@ -1,4 +1,6 @@
-﻿using BlinkDatabase.Annotations;
+﻿#pragma warning disable CS8618
+
+using BlinkDatabase.Annotations;
 using BlinkHttp.Authentication;
 
 namespace MyApplication;
@@ -73,4 +75,74 @@ public class Role
 
     [Column("description")]
     public string Description { get; set; }
+}
+
+[Table("books")]
+public class Book
+{
+    [Id]
+    [Column("id")]
+    public int Id { get; set; }
+
+    [Column("name")]
+    public string? Name { get; set; }
+
+    [Relation("id")]
+    [Column("library_id")]
+    public Library Library { get; set; }
+
+    [Relation("id")]
+    [Column("author_id")]
+    public Author? Author { get; set; }
+
+    public override string ToString() => $"Book(Id = {Id}, Name = {Name}, LibraryId = {Library?.Id}, Author = {Author})";
+}
+
+[Table("libraries")]
+public class Library
+{
+    [Id]
+    [Column("id")]
+    public int Id { get; set; }
+
+    [Column("name")]
+    public string? Name { get; set; }
+
+    [Column("type")]
+    public LibraryType Type { get; set; }
+
+    [Relation("library_id")]
+    [Column("id")]
+    public List<Book>? Books { get; set; }
+
+    public override string ToString() => $"Library(Id = {Id}, Name = {Name}, Type = {Type}, Books = [{(Books != null ? string.Join(", ", Books) : "N/A")}])";
+}
+
+[Enum("book_type")]
+public enum LibraryType
+{
+    [EnumValue("buy")]
+    Buy,
+
+    [EnumValue("rent")]
+    Rent,
+
+    [EnumValue("free")]
+    Free
+}
+
+[Table("authors")]
+public class Author
+{
+    [Id]
+    [Column("id")]
+    public int Id { get; set; }
+
+    [Column("name")]
+    public string? Name { get; set; }
+
+    [Column("birthdate")]
+    public DateTime Birthdate { get; set; }
+
+    public override string ToString() => $"Author(Id = {Id}, Name = {Name}, Birthdate = {Birthdate.ToShortDateString()})";
 }

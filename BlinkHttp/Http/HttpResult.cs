@@ -1,7 +1,12 @@
-﻿using System.Net;
+﻿#pragma warning disable CS1591
+
+using System.Net;
 
 namespace BlinkHttp.Http;
 
+/// <summary>
+/// Represents a result with plain HTTP response. ContentType and ContentDisposition are required.
+/// </summary>
 public class HttpResult : IHttpResult
 {
     public byte[] Data { get; }
